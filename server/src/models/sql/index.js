@@ -15,6 +15,7 @@ const NotificationType = require("./notificationType.model");
 const Subscription = require("./subscription.model");
 const ServiceConfiguration = require("./serviceConfiguration.model");
 const AlertThreshold = require("./alertThreshold.model");
+const PushSubscription = require("./pushSubscription.model");
 
 // User -> Car (One-to-Many)
 User.hasMany(Car, {
@@ -156,6 +157,17 @@ AlertThreshold.belongsTo(AlertType, {
     onUpdate: "CASCADE",
 });
 
+// User -> PushSubscription (One-to-Many)
+// User.hasMany(PushSubscription, {
+//     foreignKey: "userId",
+//     as: "pushSubscriptions",
+//     onDelete: "CASCADE",
+// });
+// PushSubscription.belongsTo(User, {
+//     foreignKey: "userId",
+//     as: "user",
+// });
+
 module.exports = {
     User,
     Car,
@@ -168,4 +180,5 @@ module.exports = {
     NotificationType,
     Subscription,
     ServiceConfiguration,
+    // PushSubscription,
 };
