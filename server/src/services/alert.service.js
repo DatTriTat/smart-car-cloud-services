@@ -259,8 +259,8 @@ class AlertService {
             );
 
             // 7. Send alert data to notification service
-            NotificationService.sendAppPushNotification({
-                notification: alert,
+            NotificationService.sendNotification({
+                alert,
                 userId: car.userId
             }).catch(err => logger.error(err));
 

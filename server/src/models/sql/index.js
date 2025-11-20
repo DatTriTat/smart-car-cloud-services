@@ -15,7 +15,6 @@ const NotificationType = require("./notificationType.model");
 const Subscription = require("./subscription.model");
 const ServiceConfiguration = require("./serviceConfiguration.model");
 const AlertThreshold = require("./alertThreshold.model");
-const PushSubscription = require("./pushSubscription.model");
 
 // User -> Car (One-to-Many)
 User.hasMany(Car, {
