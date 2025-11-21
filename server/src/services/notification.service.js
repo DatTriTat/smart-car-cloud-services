@@ -3,7 +3,6 @@
 const logger = require("../utils/logger");
 const {AlertNotification} = require("../models/mongo");
 const {NOTIFICATION_TYPES} = require("../types/enums");
-const PushService = require("../services/push.service");
 const ServiceConfiguration = require("../models/sql/serviceConfiguration.model");
 const {BadRequestError} = require("../core/error.response");
 const {pushToUser} = require("../services/sse.service");
