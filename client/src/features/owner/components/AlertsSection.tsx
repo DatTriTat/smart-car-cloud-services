@@ -18,6 +18,7 @@ import type { Alert } from "@/domain/types";
 
 interface AlertsSectionProps {
   alerts: Alert[];
+  onSelectAlert: (alert: Alert) => void;
 }
 
 const severityStyles: Record<Alert["severity"], string> = {
@@ -51,7 +52,7 @@ function formatAlertType(alertType: string) {
   return result.join(" ");
 }
 
-export function AlertsSection({ alerts }: AlertsSectionProps) {
+export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
   return (
     <Card>
       <CardHeader>
@@ -86,7 +87,11 @@ export function AlertsSection({ alerts }: AlertsSectionProps) {
                     new Date(a.createdAt).getTime()
                 )
                 .map((alert) => (
-                  <TableRow key={alert.id}>
+                  <TableRow
+                    key={alert.id}
+                    onClick={() => onSelectAlert(alert)}
+                    className="hover:cursor-pointer"
+                  >
                     <TableCell className="align-top text-xs text-slate-600">
                       {formatDate(alert.createdAt)}
                     </TableCell>

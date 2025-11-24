@@ -4,24 +4,45 @@ import type { Alert } from "@/domain/types";
 import { AlertsSection } from "../components/AlertsSection";
 import { DevicesSection } from "../components/DevicesSection";
 import { useOwnerDashboard } from "../hooks/useOwnerDashboard";
+import { AlertDetailDialog } from "../components/AlertDetailDialog";
+import { useState } from "react";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
-
   const { data, loading, error } = useOwnerDashboard(ownerId);
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  function handleSelectAlert(alert: Alert) {
+    setSelectedAlert(alert);
+    setDialogOpen(true);
+  }
+
+  function handleAcknowledge(alertId: string) {
+    const updatedAlerts = alerts.map((a) =>
+      a.id === alertId ? { ...a, status: "ACKNOWLEDGED" } : a
+    );
+
+    data.alerts = updatedAlerts;
+    setSelectedAlert((prev) =>
+      prev ? { ...prev, status: "ACKNOWLEDGED" } : prev
+    );
+  }
 
   if (loading) {
     return (
-      <div>
-        <div>Loading owner dashboard...</div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div className="text-sm text-slate-500">Loading owner dashboard...</div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div>
-        <div>Failed to load dashboard. {error?.message}</div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div className="text-sm text-rose-600">
+          Failed to load dashboard. {error?.message}
+        </div>
       </div>
     );
   }
@@ -52,9 +73,26 @@ export function OwnerDashboardPage() {
               criticalAlerts={criticalAlerts}
             />
 
-            <AlertsSection alerts={carAlerts} />
+            <AlertsSection
+              alerts={carAlerts}
+              onSelectAlert={handleSelectAlert}
+            />
 
             <DevicesSection devices={carDevices} />
+
+            <AlertDetailDialog
+              alert={selectedAlert}
+              device={
+                selectedAlert
+                  ? carDevices.find(
+                      (device) => device.id === selectedAlert.deviceId
+                    ) || null
+                  : null
+              }
+              open={dialogOpen}
+              onClose={() => setDialogOpen(false)}
+              onAcknowledge={handleAcknowledge}
+            />
 
             <pre className="bg-white p-4 rounded border text-xs text-slate-700">
               {JSON.stringify(
