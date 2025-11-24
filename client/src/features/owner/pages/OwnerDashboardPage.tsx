@@ -9,7 +9,7 @@ import { useState } from "react";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
-  const { data, loading, error } = useOwnerDashboard(ownerId);
+  const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -29,7 +29,7 @@ export function OwnerDashboardPage() {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
         <div className="text-sm text-slate-500">Loading owner dashboard...</div>
