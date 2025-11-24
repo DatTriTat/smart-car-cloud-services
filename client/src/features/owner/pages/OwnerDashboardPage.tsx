@@ -1,12 +1,32 @@
-import { mockOwnerDashboardData } from "@/mocks/ownerDashboard";
 import { OwnerLayout } from "@/features/owner/components/OwnerLayout";
 import { CarSummaryCard } from "@/features/owner/components/CarSummaryCard";
 import type { Alert } from "@/domain/types";
 import { AlertsSection } from "../components/AlertsSection";
 import { DevicesSection } from "../components/DevicesSection";
+import { useOwnerDashboard } from "../hooks/useOwnerDashboard";
 
 export function OwnerDashboardPage() {
-  const { cars, alerts, devices } = mockOwnerDashboardData;
+  const ownerId = "u-owner-1";
+
+  const { data, loading, error } = useOwnerDashboard(ownerId);
+
+  if (loading) {
+    return (
+      <div>
+        <div>Loading owner dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div>
+        <div>Failed to load dashboard. {error?.message}</div>
+      </div>
+    );
+  }
+
+  const { cars, alerts, devices } = data;
 
   return (
     <OwnerLayout>
