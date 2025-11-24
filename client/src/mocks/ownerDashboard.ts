@@ -4,6 +4,7 @@ import type {
   Alert,
   IoTDevice,
   OwnerDashboardData,
+  CarServiceConfig,
 } from "../domain/types";
 
 const owner: User = {
@@ -101,9 +102,101 @@ const alerts: Alert[] = [
   },
 ];
 
+const carServiceConfigs: CarServiceConfig[] = [
+  {
+    carId: "car-1",
+    services: [
+      {
+        key: "OUTSIDE_NOISE",
+        label: "Outside noise detection",
+        description:
+          "Detects sirens, collisions, and road emergencies around the car.",
+        enabled: true,
+      },
+      {
+        key: "INSIDE_NOISE",
+        label: "Inside cabin noise detection",
+        description: "Monitors unusual sounds inside the cabin.",
+        enabled: true,
+      },
+      {
+        key: "PASSENGER_SOUND",
+        label: "Passenger sound detection",
+        description:
+          "Detects shouting, distress, or abnormal passenger activity.",
+        enabled: true,
+      },
+      {
+        key: "ANIMAL_SOUND",
+        label: "Animal sound detection",
+        description: "Detects barking, meowing, or other animal noises.",
+        enabled: false,
+      },
+      {
+        key: "ENGINE_ANOMALY",
+        label: "Engine anomaly detection",
+        description: "Listens for abnormal engine knock or grinding sounds.",
+        enabled: true,
+      },
+      {
+        key: "COLLISION_SOUND",
+        label: "Collision sound detection",
+        description:
+          "Detects sudden impact sounds that may indicate a collision.",
+        enabled: true,
+      },
+    ],
+  },
+  {
+    carId: "car-2",
+    services: [
+      {
+        key: "OUTSIDE_NOISE",
+        label: "Outside noise detection",
+        description:
+          "Detects sirens, collisions, and road emergencies around the car.",
+        enabled: true,
+      },
+      {
+        key: "INSIDE_NOISE",
+        label: "Inside cabin noise detection",
+        description: "Monitors unusual sounds inside the cabin.",
+        enabled: false,
+      },
+      {
+        key: "PASSENGER_SOUND",
+        label: "Passenger sound detection",
+        description:
+          "Detects shouting, distress, or abnormal passenger activity.",
+        enabled: false,
+      },
+      {
+        key: "ANIMAL_SOUND",
+        label: "Animal sound detection",
+        description: "Detects barking, meowing, or other animal noises.",
+        enabled: false,
+      },
+      {
+        key: "ENGINE_ANOMALY",
+        label: "Engine anomaly detection",
+        description: "Listens for abnormal engine knock or grinding sounds.",
+        enabled: true,
+      },
+      {
+        key: "COLLISION_SOUND",
+        label: "Collision sound detection",
+        description:
+          "Detects sudden impact sounds that may indicate a collision.",
+        enabled: true,
+      },
+    ],
+  },
+];
+
 export const mockOwnerDashboardData: OwnerDashboardData = {
   owner,
   cars,
   alerts,
   devices,
+  carServiceConfigs,
 };

@@ -1,17 +1,29 @@
 import { OwnerLayout } from "@/features/owner/components/OwnerLayout";
 import { CarSummaryCard } from "@/features/owner/components/CarSummaryCard";
-import type { Alert } from "@/domain/types";
+import type {
+  CarServiceConfig,
+  Alert,
+  IntelligenceServiceKey,
+} from "@/domain/types";
 import { AlertsSection } from "../components/AlertsSection";
 import { DevicesSection } from "../components/DevicesSection";
 import { useOwnerDashboard } from "../hooks/useOwnerDashboard";
 import { AlertDetailDialog } from "../components/AlertDetailDialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { OwnerServiceConfigSection } from "../components/OwnerServiceConfigSection";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [serviceConfigs, setServiceConfigs] = useState<CarServiceConfig[]>([]);
+
+  useEffect(() => {
+    if (data?.carServiceConfigs) {
+      setServiceConfigs(carServiceConfigs);
+    }
+  }, [data]);
 
   function handleSelectAlert(alert: Alert) {
     setSelectedAlert(alert);
@@ -26,6 +38,25 @@ export function OwnerDashboardPage() {
     data.alerts = updatedAlerts;
     setSelectedAlert((prev) =>
       prev ? { ...prev, status: "ACKNOWLEDGED" } : prev
+    );
+  }
+
+  function handleToggleService(
+    carId: string,
+    key: IntelligenceServiceKey,
+    enabled: boolean
+  ) {
+    setServiceConfigs((prev) =>
+      prev.map((cfg) =>
+        cfg.carId !== carId
+          ? cfg
+          : {
+              ...cfg,
+              services: cfg.services.map((s) =>
+                s.key === key ? { ...s, enabled } : s
+              ),
+            }
+      )
     );
   }
 
@@ -47,7 +78,7 @@ export function OwnerDashboardPage() {
     );
   }
 
-  const { cars, alerts, devices } = data;
+  const { cars, alerts, devices, carServiceConfigs } = data;
 
   return (
     <OwnerLayout>
@@ -94,13 +125,11 @@ export function OwnerDashboardPage() {
               onAcknowledge={handleAcknowledge}
             />
 
-            <pre className="bg-white p-4 rounded border text-xs text-slate-700">
-              {JSON.stringify(
-                { alerts: carAlerts, devices: carDevices },
-                null,
-                2
-              )}
-            </pre>
+            <OwnerServiceConfigSection
+              carId={selectedCar.id}
+              configs={serviceConfigs}
+              onToggleService={handleToggleService}
+            />
           </div>
         );
       }}

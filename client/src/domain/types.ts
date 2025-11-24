@@ -53,10 +53,30 @@ export interface Alert {
   acknowledgedAt?: string;
 }
 
+// ---- Intelligence services ----
+export type IntelligenceServiceKey =
+  | "OUTSIDE_NOISE"
+  | "INSIDE_NOISE"
+  | "PASSENGER_SOUND"
+  | "ANIMAL_SOUND"
+  | "ENGINE_ANOMALY"
+  | "COLLISION_SOUND";
+
+export interface CarServiceConfig {
+  carId: string;
+  services: {
+    key: IntelligenceServiceKey;
+    label: string;
+    description: string;
+    enabled: boolean;
+  }[];
+}
+
 // ---- Owner Dashboard aggregate ----
 export interface OwnerDashboardData {
   owner: User;
   cars: Car[];
   alerts: Alert[];
   devices: IoTDevice[];
+  carServiceConfigs: CarServiceConfig[];
 }
