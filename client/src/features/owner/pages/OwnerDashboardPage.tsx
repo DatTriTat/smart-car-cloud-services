@@ -15,6 +15,8 @@ import { useEffect, useState } from "react";
 import { OwnerServiceConfigSection } from "../components/OwnerServiceConfigSection";
 import { OwnerPlanCard } from "../components/OwnerPlanCard";
 import { OwnerNotificationPreferencesSection } from "../components/OwnerNotificationPreferencesSection";
+import { AlertsFilterBar } from "../components/AlertsFilterBar";
+import type { AlertSeverityFilter } from "../components/AlertsFilterBar";
 import Loading from "@/components/shared/Loading";
 import Error from "@/components/shared/Error";
 
@@ -27,6 +29,9 @@ export function OwnerDashboardPage() {
   const [subscription, setSubscription] = useState<OwnerSubscription | null>(
     null
   );
+  const [severityFilter, setSeverityFilter] =
+    useState<AlertSeverityFilter>("ALL");
+  const [alertSearch, setAlertSearch] = useState<string>("");
 
   useEffect(() => {
     if (data?.carServiceConfigs) {
@@ -111,6 +116,17 @@ export function OwnerDashboardPage() {
           (a: Alert) => a.severity === "CRITICAL"
         ).length;
 
+        const filteredAlerts = carAlerts.filter((alert) => {
+          const severityOk =
+            severityFilter === "ALL" || alert.severity === severityFilter;
+
+          const query = alertSearch.trim().toLowerCase();
+          if (!query) return severityOk;
+
+          const haystack = `${alert.type} ${alert.message}`.toLowerCase();
+          return severityOk && haystack.includes(query);
+        });
+
         return (
           <div className="space-y-6">
             <CarSummaryCard
@@ -119,8 +135,17 @@ export function OwnerDashboardPage() {
               criticalAlerts={criticalAlerts}
             />
 
+            <AlertsFilterBar
+              severity={severityFilter}
+              onChangeSeverity={setSeverityFilter}
+              searchQuery={alertSearch}
+              onChangeSearch={setAlertSearch}
+              totalCount={carAlerts.length}
+              filteredCount={filteredAlerts.length}
+            />
+
             <AlertsSection
-              alerts={carAlerts}
+              alerts={filteredAlerts}
               onSelectAlert={handleSelectAlert}
             />
 
