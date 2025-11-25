@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Alert } from "@/domain/types";
+import { capitalize } from "@/utils";
 
 interface AlertsSectionProps {
   alerts: Alert[];
@@ -41,15 +42,6 @@ function formatDate(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function formatAlertType(alertType: string) {
-  const words = alertType.toLowerCase().split("_");
-  const result = [];
-  for (const word of words) {
-    result.push(word[0].toUpperCase() + word.slice(1));
-  }
-  return result.join(" ");
 }
 
 export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
@@ -96,7 +88,7 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
                       {formatDate(alert.createdAt)}
                     </TableCell>
                     <TableCell className="align-top text-xs font-medium text-slate-800">
-                      {formatAlertType(alert.type)}
+                      {capitalize(alert.type)}
                     </TableCell>
                     <TableCell className="align-top">
                       <Badge

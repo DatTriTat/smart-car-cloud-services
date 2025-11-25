@@ -4,6 +4,8 @@ import type {
   CarServiceConfig,
   Alert,
   IntelligenceServiceKey,
+  OwnerSubscription,
+  NotificationChannelKey,
 } from "@/domain/types";
 import { AlertsSection } from "../components/AlertsSection";
 import { DevicesSection } from "../components/DevicesSection";
@@ -11,6 +13,10 @@ import { useOwnerDashboard } from "../hooks/useOwnerDashboard";
 import { AlertDetailDialog } from "../components/AlertDetailDialog";
 import { useEffect, useState } from "react";
 import { OwnerServiceConfigSection } from "../components/OwnerServiceConfigSection";
+import { OwnerPlanCard } from "../components/OwnerPlanCard";
+import { OwnerNotificationPreferencesSection } from "../components/OwnerNotificationPreferencesSection";
+import Loading from "@/components/shared/Loading";
+import Error from "@/components/shared/Error";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
@@ -18,10 +24,17 @@ export function OwnerDashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [serviceConfigs, setServiceConfigs] = useState<CarServiceConfig[]>([]);
+  const [subscription, setSubscription] = useState<OwnerSubscription | null>(
+    null
+  );
 
   useEffect(() => {
     if (data?.carServiceConfigs) {
-      setServiceConfigs(carServiceConfigs);
+      setServiceConfigs(data.carServiceConfigs);
+    }
+
+    if (data?.subscription) {
+      setSubscription(data.subscription);
     }
   }, [data]);
 
@@ -60,25 +73,27 @@ export function OwnerDashboardPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="text-sm text-slate-500">Loading owner dashboard...</div>
-      </div>
+  function handleToggleChannel(
+    channel: NotificationChannelKey,
+    enabled: boolean
+  ) {
+    setSubscription((prev) =>
+      prev
+        ? {
+            ...prev,
+            notificationPreferences: prev.notificationPreferences.map((pref) =>
+              pref.channel === channel ? { ...pref, enabled } : pref
+            ),
+          }
+        : prev
     );
   }
 
-  if (error || !data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="text-sm text-rose-600">
-          Failed to load dashboard. {error?.message}
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <Loading />;
 
-  const { cars, alerts, devices, carServiceConfigs } = data;
+  if (error || !data) return <Error error={error} />;
+
+  const { cars, alerts, devices } = data;
 
   return (
     <OwnerLayout>
@@ -124,6 +139,21 @@ export function OwnerDashboardPage() {
               onClose={() => setDialogOpen(false)}
               onAcknowledge={handleAcknowledge}
             />
+
+            {/* Plan + notification preferences side by side */}
+            {subscription && (
+              <div className="grid gap-6 md:grid-cols-2">
+                <OwnerPlanCard
+                  subscription={subscription}
+                  onUpgrade={() => console.log("Upgrade plan clicked")}
+                />
+
+                <OwnerNotificationPreferencesSection
+                  preferences={subscription.notificationPreferences}
+                  onToggleChannel={handleToggleChannel}
+                />
+              </div>
+            )}
 
             <OwnerServiceConfigSection
               carId={selectedCar.id}

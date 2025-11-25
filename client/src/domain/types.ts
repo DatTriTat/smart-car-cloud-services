@@ -23,6 +23,14 @@ export interface Car {
   createdAt: string;
 }
 
+// ---- Car location / tracking ----
+export interface CarLocation {
+  carId: string;
+  latitude: number;
+  longitude: number;
+  lastSeenAt: string; // ISO timestamp
+}
+
 // ---- IoT Device ----
 export type DeviceType = "MICROPHONE" | "CAMERA";
 export type DeviceStatus = "ONLINE" | "OFFLINE" | "ERROR";
@@ -72,6 +80,23 @@ export interface CarServiceConfig {
   }[];
 }
 
+// ---- Notifications & Subscription ----
+export type NotificationChannelKey = "EMAIL" | "SMS" | "PUSH";
+
+export interface NotificationPreference {
+  channel: NotificationChannelKey;
+  label: string;
+  description: string;
+  enabled: boolean;
+}
+
+export interface OwnerSubscription {
+  planName: string;
+  pricePerMonth: number;
+  renewalDate: string;
+  notificationPreferences: NotificationPreference[];
+}
+
 // ---- Owner Dashboard aggregate ----
 export interface OwnerDashboardData {
   owner: User;
@@ -79,4 +104,6 @@ export interface OwnerDashboardData {
   alerts: Alert[];
   devices: IoTDevice[];
   carServiceConfigs: CarServiceConfig[];
+  subscription: OwnerSubscription;
+  carLocations: CarLocation[];
 }

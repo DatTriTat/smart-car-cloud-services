@@ -41,7 +41,9 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         </div>
       </aside>
 
-      <main>{selectedCarId && children(selectedCarId)}</main>
+      <main className="flex-1 p-6">
+        {selectedCarId && children(selectedCarId)}
+      </main>
     </div>
   );
 }

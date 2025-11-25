@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Alert, IoTDevice } from "@/domain/types";
+import { capitalize } from "@/utils";
 
 interface AlertDetailDialogProps {
   alert: Alert | null;
@@ -28,15 +29,6 @@ const statusStyles: Record<Alert["status"], string> = {
   ACKNOWLEDGED: "bg-slate-50 text-slate-700 border-slate-200",
   RESOLVED: "bg-slate-100 text-slate-500 border-slate-300",
 };
-
-function formatAlertType(alertType: string) {
-  const words = alertType.toLowerCase().split("_");
-  const result = [];
-  for (const word of words) {
-    result.push(word[0].toUpperCase() + word.slice(1));
-  }
-  return result.join(" ");
-}
 
 export function AlertDetailDialog({
   alert,
@@ -64,7 +56,7 @@ export function AlertDetailDialog({
 
           <div>
             <p className="text-xs text-slate-500">Type</p>
-            <p className="font-medium">{formatAlertType(alert.type)}</p>
+            <p className="font-medium">{capitalize(alert.type)}</p>
           </div>
 
           <div>

@@ -5,6 +5,8 @@ import type {
   IoTDevice,
   OwnerDashboardData,
   CarServiceConfig,
+  OwnerSubscription,
+  CarLocation,
 } from "../domain/types";
 
 const owner: User = {
@@ -14,6 +16,21 @@ const owner: User = {
   role: "CAR_OWNER",
   createdAt: "2025-11-01T10:00:00Z",
 };
+
+const carLocations: CarLocation[] = [
+  {
+    carId: "car-1",
+    latitude: 37.3349, // around Cupertino
+    longitude: -122.009,
+    lastSeenAt: "2025-11-22T18:15:00Z",
+  },
+  {
+    carId: "car-2",
+    latitude: 37.7749, // around San Francisco
+    longitude: -122.4194,
+    lastSeenAt: "2025-11-22T17:50:00Z",
+  },
+];
 
 const cars: Car[] = [
   {
@@ -193,10 +210,38 @@ const carServiceConfigs: CarServiceConfig[] = [
   },
 ];
 
+const subscription: OwnerSubscription = {
+  planName: "Premium",
+  pricePerMonth: 19.99,
+  renewalDate: "2025-12-15T00:00:00Z",
+  notificationPreferences: [
+    {
+      channel: "EMAIL",
+      label: "Email notifications",
+      description: "Receive alerts and summaries via email.",
+      enabled: true,
+    },
+    {
+      channel: "SMS",
+      label: "SMS notifications",
+      description: "Receive critical alerts via text message.",
+      enabled: false,
+    },
+    {
+      channel: "PUSH",
+      label: "In-app push notifications",
+      description: "Receive alerts in the mobile or web app.",
+      enabled: true,
+    },
+  ],
+};
+
 export const mockOwnerDashboardData: OwnerDashboardData = {
   owner,
   cars,
   alerts,
   devices,
   carServiceConfigs,
+  subscription,
+  carLocations,
 };
