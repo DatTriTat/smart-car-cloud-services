@@ -4,6 +4,7 @@ import { OwnerDashboardPage } from "@/features/owner/pages/OwnerDashboardPage";
 import { OwnerOverviewPage } from "@/features/owner/pages/OwnerOverviewPage";
 import { OwnerAccountPage } from "@/features/owner/pages/OwnerAccountPage";
 import { IoTDevicesOverviewPage } from "@/features/iot/pages/IoTDevicesOverviewPage";
+import { IoTCarDevicesPage } from "@/features/iot/pages/IoTCarDevicesPage";
 
 export const router = createBrowserRouter([
   {
@@ -25,5 +26,9 @@ export const router = createBrowserRouter([
   {
     path: "/iot/devices",
     element: <IoTDevicesOverviewPage />,
+  },
+  {
+    path: "/iot/car-devices",
+    element: <IoTCarDevicesPage />,
   },
 ]);
