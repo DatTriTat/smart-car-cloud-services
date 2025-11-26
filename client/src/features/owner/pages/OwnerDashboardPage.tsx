@@ -23,6 +23,7 @@ import Error from "@/components/shared/Error";
 import { OWNER_PLANS } from "../config/ownerPlans";
 import { PlanUpgradeDialog } from "../components/PlanUpgradeDialog";
 import { useQueryClient } from "@tanstack/react-query";
+import { saveOwnerDashboard } from "../api/ownerDashboardStorage";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
@@ -117,7 +118,8 @@ export function OwnerDashboardPage() {
 
     queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
       if (!oldData) return oldData;
-      return {
+
+      const newData = {
         ...oldData,
         subscription: {
           ...oldData.subscription,
@@ -126,6 +128,10 @@ export function OwnerDashboardPage() {
           pricePerMonth: plan.pricePerMonth,
         },
       };
+
+      saveOwnerDashboard(newData); // Simulate update backend here
+
+      return newData;
     });
   }
 
