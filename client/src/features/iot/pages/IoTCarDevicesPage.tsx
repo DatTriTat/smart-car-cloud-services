@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { AddDeviceDialog } from "../components/AddDeviceDialog";
 import { saveOwnerDashboard } from "@/features/owner/api/ownerDashboardStorage";
 import { EditDeviceDialog } from "../components/EditDeviceDialog";
+import { DeleteDeviceDialog } from "../components/DeleteDeviceDialog";
 
 export function IoTCarDevicesPage() {
   const ownerId = "u-owner-1";
@@ -36,8 +37,12 @@ export function IoTCarDevicesPage() {
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
   const [devicesState, setDevicesState] = useState<IoTDevice[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<IoTDevice | null>(null);
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingDevice, setDeletingDevice] = useState<IoTDevice | null>(null);
 
   useEffect(() => {
     if (data) {
@@ -75,7 +80,7 @@ export function IoTCarDevicesPage() {
     );
 
     queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
-      if (!oldData) return;
+      if (!oldData) return oldData;
       const newDevices = oldData.devices.map((d: IoTDevice) =>
         d.id === update.id ? update : d
       );
@@ -86,6 +91,26 @@ export function IoTCarDevicesPage() {
       };
 
       saveOwnerDashboard(newData); // Simulate update backend here
+
+      return newData;
+    });
+  }
+
+  function handleDeleteDevice(deviceId: string) {
+    setDevicesState((prev) => prev.filter((d) => d.id !== deviceId));
+
+    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
+      if (!oldData) return oldData;
+      const newDevices = oldData.devices.filter(
+        (d: IoTDevice) => d.id !== deviceId
+      );
+
+      const newData = {
+        ...oldData,
+        devices: newDevices,
+      };
+
+      saveOwnerDashboard(newData);
 
       return newData;
     });
@@ -198,16 +223,26 @@ export function IoTCarDevicesPage() {
                           {device.status}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setEditingDevice(device);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
+                      <TableCell>
+                        <div className="flex justify-end gap-3">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setEditingDevice(device);
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setDeletingDevice(device);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -229,6 +264,13 @@ export function IoTCarDevicesPage() {
           device={editingDevice}
           onClose={() => setIsEditDialogOpen(false)}
           onSave={handleSaveEditedDevice}
+        />
+
+        <DeleteDeviceDialog
+          open={isDeleteDialogOpen}
+          device={deletingDevice}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          onConfirm={handleDeleteDevice}
         />
       </div>
     </IoTLayout>

@@ -58,8 +58,6 @@ export function EditDeviceDialog({
     onClose();
   }
 
-  console.log(deviceType);
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
