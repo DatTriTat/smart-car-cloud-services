@@ -1,3 +1,4 @@
+import { useAuth } from "@/auth/AuthContext";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
@@ -7,6 +8,7 @@ interface IoTLayoutProps {
 
 export function IoTLayout({ children }: IoTLayoutProps) {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { label: "Devices Overview", path: "/iot/devices" },
@@ -19,6 +21,14 @@ export function IoTLayout({ children }: IoTLayoutProps) {
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Iot Device Console</h2>
           <p className="text-sm text-slate-500">Edge / IoT team workspace</p>
+          {user && (
+            <button
+              className="mt-2 text-slate-600 font-medium underline hover:cursor-pointer"
+              onClick={logout}
+            >
+              Logout
+            </button>
+          )}
         </div>
 
         <nav className="space-y-1 mb-6">

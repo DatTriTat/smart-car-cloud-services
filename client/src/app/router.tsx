@@ -5,6 +5,8 @@ import { OwnerOverviewPage } from "@/features/owner/pages/OwnerOverviewPage";
 import { OwnerAccountPage } from "@/features/owner/pages/OwnerAccountPage";
 import { IoTDevicesOverviewPage } from "@/features/iot/pages/IoTDevicesOverviewPage";
 import { IoTCarDevicesPage } from "@/features/iot/pages/IoTCarDevicesPage";
+import { LoginPage } from "@/features/auth/pages/LoginPage";
+import { RequireAuth } from "@/auth/RequireAuth";
 
 export const router = createBrowserRouter([
   {
@@ -12,23 +14,47 @@ export const router = createBrowserRouter([
     element: <App />,
   },
   {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
     path: "/owner/dashboard",
-    element: <OwnerDashboardPage />,
+    element: (
+      <RequireAuth>
+        <OwnerDashboardPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/owner/overview",
-    element: <OwnerOverviewPage />,
+    element: (
+      <RequireAuth>
+        <OwnerOverviewPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/owner/account",
-    element: <OwnerAccountPage />,
+    element: (
+      <RequireAuth>
+        <OwnerAccountPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/iot/devices",
-    element: <IoTDevicesOverviewPage />,
+    element: (
+      <RequireAuth>
+        <IoTDevicesOverviewPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/iot/car-devices",
-    element: <IoTCarDevicesPage />,
+    element: (
+      <RequireAuth>
+        <IoTCarDevicesPage />
+      </RequireAuth>
+    ),
   },
 ]);

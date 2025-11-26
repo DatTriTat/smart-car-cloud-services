@@ -3,6 +3,8 @@ import { useState } from "react";
 import { mockOwnerDashboardData } from "@/mocks/ownerDashboard";
 import { Link, useLocation } from "react-router";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/auth/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface OwnerLayoutProps {
   children: (selectedCarId: string) => ReactNode;
@@ -12,12 +14,15 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
   const { owner, cars } = mockOwnerDashboardData;
   const [selectedCarId, setSelectedCarId] = useState(cars[0]?.id);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { label: "Overview", path: "/owner/overview" },
-    { label: "Dashboard", path: "/owner/dashboard" },
+    { label: "My Cars", path: "/owner/dashboard" },
     { label: "Account", path: "/owner/account" },
   ];
+
+  const displayName = user?.name ?? owner.name;
 
   return (
     <div className="min-h-screen flex bg-slate-100">
@@ -25,11 +30,21 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
       <aside className="w-64 bg-white border-r p-4 flex flex-col">
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Smart Car Cloud</h2>
-          <p className="text-sm text-slate-500">Signed in as {owner.name}</p>
+          <p className="text-sm text-slate-500">Signed in as {displayName}</p>
+          {user && (
+            <button
+              className="mt-2 text-slate-600 font-medium underline hover:cursor-pointer"
+              onClick={logout}
+            >
+              Logout
+            </button>
+          )}
         </div>
 
+        <Separator />
+
         {/* Top navigation */}
-        <nav className="space-y-1 mb-6">
+        <nav className="space-y-1 mb-2">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
