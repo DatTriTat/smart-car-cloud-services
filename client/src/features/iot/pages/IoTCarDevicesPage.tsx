@@ -26,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { AddDeviceDialog } from "../components/AddDeviceDialog";
 import { saveOwnerDashboard } from "@/features/owner/api/ownerDashboardStorage";
+import { EditDeviceDialog } from "../components/EditDeviceDialog";
 
 export function IoTCarDevicesPage() {
   const ownerId = "u-owner-1";
@@ -35,6 +36,8 @@ export function IoTCarDevicesPage() {
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
   const [devicesState, setDevicesState] = useState<IoTDevice[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<IoTDevice | null>(null);
 
   useEffect(() => {
     if (data) {
@@ -61,6 +64,28 @@ export function IoTCarDevicesPage() {
       };
 
       saveOwnerDashboard(newData); // Simulate backend update here
+
+      return newData;
+    });
+  }
+
+  function handleSaveEditedDevice(update: IoTDevice) {
+    setDevicesState((prev) =>
+      prev.map((d) => (d.id === update.id ? update : d))
+    );
+
+    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
+      if (!oldData) return;
+      const newDevices = oldData.devices.map((d: IoTDevice) =>
+        d.id === update.id ? update : d
+      );
+
+      const newData = {
+        ...oldData,
+        devices: newDevices,
+      };
+
+      saveOwnerDashboard(newData); // Simulate update backend here
 
       return newData;
     });
@@ -149,7 +174,8 @@ export function IoTCarDevicesPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Status</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -161,7 +187,7 @@ export function IoTCarDevicesPage() {
                       <TableCell className="text-slate-700">
                         {device.deviceType}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
                         <span
                           className={
                             device.status === "ONLINE"
@@ -171,6 +197,17 @@ export function IoTCarDevicesPage() {
                         >
                           {device.status}
                         </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setEditingDevice(device);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -185,6 +222,13 @@ export function IoTCarDevicesPage() {
           carId={selectedCarId}
           onClose={() => setIsAddDialogOpen(false)}
           onSave={handleAddDevice}
+        />
+
+        <EditDeviceDialog
+          open={isEditDialogOpen}
+          device={editingDevice}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSave={handleSaveEditedDevice}
         />
       </div>
     </IoTLayout>

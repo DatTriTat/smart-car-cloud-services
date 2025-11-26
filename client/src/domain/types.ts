@@ -32,7 +32,7 @@ export interface CarLocation {
 }
 
 // ---- IoT Device ----
-export type DeviceType = "MICROPHONE" | "CAMERA";
+export type DeviceType = "MICROPHONE" | "CAMERA" | "AUDIO";
 export type DeviceStatus = "ONLINE" | "OFFLINE" | "ERROR";
 
 export interface IoTDevice {

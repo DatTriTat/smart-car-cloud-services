@@ -88,8 +88,7 @@ export function AddDeviceDialog({
                   <SelectLabel>Device Type</SelectLabel>
                   <SelectItem value="AUDIO">Audio Sensor</SelectItem>
                   <SelectItem value="CAMERA">Camera</SelectItem>
-                  <SelectItem value="MIC">Microphone</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
+                  <SelectItem value="MICROPHONE">Microphone</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
