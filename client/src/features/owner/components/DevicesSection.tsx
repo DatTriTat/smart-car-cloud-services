@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+import { DeviceStatusBadge } from "@/components/status/DeviceStatusBadge";
 import {
   Card,
   CardContent,
@@ -7,16 +7,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { IoTDevice } from "@/domain/types";
+import { formatDate } from "@/utils";
 
 interface DevicesSectionProps {
   devices: IoTDevice[];
 }
-
-const statusStyles: Record<IoTDevice["status"], string> = {
-  ONLINE: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  OFFLINE: "bg-rose-50 text-rose-700 border-rose-200",
-  ERROR: "bg-amber-50 text-amber-700 border-amber-200",
-};
 
 function formatType(deviceType: IoTDevice["deviceType"]) {
   return deviceType.charAt(0) + deviceType.slice(1).toLowerCase();
@@ -54,13 +49,10 @@ export function DevicesSection({ devices }: DevicesSectionProps) {
                       {formatType(device.deviceType)}
                     </p>
                   </div>
-                  <Badge className={statusStyles[device.status]}>
-                    {device.status}
-                  </Badge>
+                  <DeviceStatusBadge status={device.status} />
                 </div>
                 <p className="text-sm text-slate-500">
-                  Connected since{" "}
-                  {new Date(device.createdAt).toLocaleDateString()}
+                  Connected since {formatDate(device.createdAt)}
                 </p>
               </div>
             ))}

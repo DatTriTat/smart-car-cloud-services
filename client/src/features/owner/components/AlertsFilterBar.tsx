@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { capitalize } from "@/utils";
 
 export type AlertSeverityFilter = "ALL" | "INFO" | "WARN" | "CRITICAL";
@@ -41,9 +40,7 @@ export function AlertsFilterBar({
               key={option}
               variant={isActive ? "default" : "ghost"}
               className={
-                isActive
-                  ? "px-6 rounded-none"
-                  : "px-6 rounded-none text-slate-700 hover:bg-slate-50"
+                isActive ? "px-6" : "px-6 text-slate-700 hover:bg-slate-50"
               }
               onClick={() => onChangeSeverity(option)}
             >

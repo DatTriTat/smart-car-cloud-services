@@ -1,6 +1,10 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
-import type { Car, IoTDevice } from "@/domain/types";
+import {
+  type OwnerDashboardData,
+  type Car,
+  type IoTDevice,
+} from "@/domain/types";
 import { useOwnerDashboard } from "@/features/owner/hooks/useOwnerDashboard";
 import { useEffect, useState } from "react";
 import { IoTLayout } from "../components/IoTLayout";
@@ -28,6 +32,11 @@ import { AddDeviceDialog } from "../components/AddDeviceDialog";
 import { saveOwnerDashboard } from "@/features/owner/api/ownerDashboardStorage";
 import { EditDeviceDialog } from "../components/EditDeviceDialog";
 import { DeleteDeviceDialog } from "../components/DeleteDeviceDialog";
+import {
+  addDevice,
+  deleteDevice,
+  updateDevice,
+} from "@/features/owner/api/ownerDashboardMutations";
 
 export function IoTCarDevicesPage() {
   const ownerId = "u-owner-1";
@@ -61,17 +70,15 @@ export function IoTCarDevicesPage() {
 
     setDevicesState((prev) => [...prev, newDevice]);
 
-    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
-      if (!oldData) return oldData;
-      const newData = {
-        ...oldData,
-        devices: [...oldData.devices, newDevice],
-      };
-
-      saveOwnerDashboard(newData); // Simulate backend update here
-
-      return newData;
-    });
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", ownerId],
+      (oldData) => {
+        if (!oldData) return oldData;
+        const newData = addDevice(oldData, newDevice);
+        saveOwnerDashboard(newData); // Simulate backend update here
+        return newData;
+      }
+    );
   }
 
   function handleSaveEditedDevice(update: IoTDevice) {
@@ -79,41 +86,29 @@ export function IoTCarDevicesPage() {
       prev.map((d) => (d.id === update.id ? update : d))
     );
 
-    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
-      if (!oldData) return oldData;
-      const newDevices = oldData.devices.map((d: IoTDevice) =>
-        d.id === update.id ? update : d
-      );
-
-      const newData = {
-        ...oldData,
-        devices: newDevices,
-      };
-
-      saveOwnerDashboard(newData); // Simulate update backend here
-
-      return newData;
-    });
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", ownerId],
+      (oldData) => {
+        if (!oldData) return oldData;
+        const newData = updateDevice(oldData, update);
+        saveOwnerDashboard(newData); // Simulate update backend here
+        return newData;
+      }
+    );
   }
 
   function handleDeleteDevice(deviceId: string) {
     setDevicesState((prev) => prev.filter((d) => d.id !== deviceId));
 
-    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
-      if (!oldData) return oldData;
-      const newDevices = oldData.devices.filter(
-        (d: IoTDevice) => d.id !== deviceId
-      );
-
-      const newData = {
-        ...oldData,
-        devices: newDevices,
-      };
-
-      saveOwnerDashboard(newData);
-
-      return newData;
-    });
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", ownerId],
+      (oldData) => {
+        if (!oldData) return oldData;
+        const newData = deleteDevice(oldData, deviceId);
+        saveOwnerDashboard(newData);
+        return newData;
+      }
+    );
   }
 
   if (isLoading) return <Loading />;

@@ -1,6 +1,6 @@
 import type { PlanId } from "@/domain/types";
 import { useEffect, useState } from "react";
-import { OWNER_PLANS, type PlanOption } from "../config/ownerPlans";
+import { OWNER_PLANS } from "../config/ownerPlans";
 import {
   Dialog,
   DialogContent,
@@ -37,15 +37,6 @@ export function PlanUpgradeDialog({
     onClose();
   }
 
-  function getPlanById(id: PlanId): PlanOption {
-    const plan = OWNER_PLANS.find((p) => p.id === id);
-    if (!plan) {
-      throw new Error(`Unknown plan id: ${id}`);
-    }
-
-    return plan;
-  }
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="min-w-3xl">
@@ -64,7 +55,7 @@ export function PlanUpgradeDialog({
                 key={plan.id}
                 type="button"
                 onClick={() => setSelectedPlanId(plan.id)}
-                className={`text-left flex flex-col justify-around border rounded-lg p-3 bg-white transition ${
+                className={`text-left flex flex-col justify-around border rounded-lg p-3 bg-white transition hover:cursor-pointer ${
                   isSelected
                     ? "border-slate-900 shadow-sm"
                     : "border-slate-200 hover:border-slate-300"
@@ -79,16 +70,14 @@ export function PlanUpgradeDialog({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 text-slate-600 space-y-1">
-                  <p className="font-medium text-slate-900">
-                    {plan.pricePerMonth === 0
-                      ? "Free"
-                      : `$${plan.pricePerMonth.toFixed(2)}/month`}
+                  <p className="font-semibold text-slate-900">
+                    {`$${plan.pricePerMonth.toFixed(2)}/month`}
                   </p>
 
-                  <p className="mb-4">{plan.description}</p>
+                  <p className="mb-3">{plan.description}</p>
 
                   {plan.features.slice(0, 3).map((f) => (
-                    <p key={f} className="text-sm text-slate-500 mt-2">
+                    <p key={f} className="text-sm text-slate-500 mt-1">
                       • {f}
                     </p>
                   ))}

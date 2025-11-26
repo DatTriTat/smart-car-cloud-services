@@ -12,14 +12,14 @@ export const OWNER_PLANS: PlanOption[] = [
   {
     id: "BASIC",
     name: "Basic",
-    pricePerMonth: 0,
+    pricePerMonth: 9.99,
     description: "Essential monitoring for a single smart car.",
     features: ["1 car included", "Basic alert history", "Email notifications"],
   },
   {
     id: "STANDARD",
     name: "Standard",
-    pricePerMonth: 9.99,
+    pricePerMonth: 19.99,
     description: "Enhanced safety features for daily driving.",
     features: [
       "Up to 2 cars",
@@ -31,7 +31,7 @@ export const OWNER_PLANS: PlanOption[] = [
   {
     id: "PREMIUM",
     name: "Premium",
-    pricePerMonth: 19.99,
+    pricePerMonth: 39.99,
     description: "Full intelligence suite for all your vehicles.",
     features: [
       "Up to 5 cars",

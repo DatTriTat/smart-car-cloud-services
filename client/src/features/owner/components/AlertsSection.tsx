@@ -1,4 +1,5 @@
-import { Badge } from "@/components/ui/badge";
+import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
+import { AlertStatusBadge } from "@/components/status/AlertStatusBadge";
 import {
   Card,
   CardContent,
@@ -15,33 +16,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Alert } from "@/domain/types";
-import { capitalize } from "@/utils";
+import { capitalize, formatDate } from "@/utils";
 
 interface AlertsSectionProps {
   alerts: Alert[];
   onSelectAlert: (alert: Alert) => void;
-}
-
-const severityStyles: Record<Alert["severity"], string> = {
-  INFO: "bg-sky-50 text-sky-700 border-sky-200",
-  WARN: "bg-amber-50 text-amber-700 border-amber-200",
-  CRITICAL: "bg-rose-50 text-rose-700 border-rose-200",
-};
-
-const statusStyles: Record<Alert["status"], string> = {
-  NEW: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  ACKNOWLEDGED: "bg-slate-50 text-slate-700 border-slate-200",
-  RESOLVED: "bg-slate-100 text-slate-500 border-slate-300",
-};
-
-function formatDate(iso: string) {
-  const date = new Date(iso);
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
@@ -84,21 +63,17 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
                     onClick={() => onSelectAlert(alert)}
                     className="hover:cursor-pointer"
                   >
-                    <TableCell className="text-slate-700">
+                    <TableCell className="text-slate-500">
                       {formatDate(alert.createdAt)}
                     </TableCell>
                     <TableCell className="font-medium text-slate-700">
                       {capitalize(alert.type)}
                     </TableCell>
                     <TableCell>
-                      <Badge className={severityStyles[alert.severity]}>
-                        {alert.severity}
-                      </Badge>
+                      <AlertSeverityBadge severity={alert.severity} />
                     </TableCell>
                     <TableCell>
-                      <Badge className={statusStyles[alert.status]}>
-                        {alert.status}
-                      </Badge>
+                      <AlertStatusBadge status={alert.status} />
                     </TableCell>
                     <TableCell className="text-slate-700">
                       {alert.message}

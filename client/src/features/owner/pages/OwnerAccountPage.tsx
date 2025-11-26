@@ -7,7 +7,7 @@ import { OwnerPlanCard } from "../components/OwnerPlanCard";
 import { OwnerNotificationPreferencesSection } from "../components/OwnerNotificationPreferencesSection";
 import type {
   NotificationChannelKey,
-  NotificationPreference,
+  OwnerDashboardData,
   PlanId,
 } from "@/domain/types";
 import { useState } from "react";
@@ -15,6 +15,10 @@ import { PlanUpgradeDialog } from "../components/PlanUpgradeDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { OWNER_PLANS } from "../config/ownerPlans";
 import { saveOwnerDashboard } from "../api/ownerDashboardStorage";
+import {
+  updateChannel,
+  updateSubcriptionPlan,
+} from "../api/ownerDashboardMutations";
 
 export function OwnerAccountPage() {
   const ownerId = "u-owner-1";
@@ -26,48 +30,36 @@ export function OwnerAccountPage() {
     channel: NotificationChannelKey,
     enabled: boolean
   ) {
-    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
-      if (!oldData) return oldData;
-
-      const newData = {
-        ...oldData,
-        subscription: {
-          ...oldData.subscription,
-          notificationPreferences:
-            oldData.subscription.notificationPreferences.map(
-              (pref: NotificationPreference) =>
-                pref.channel === channel ? { ...pref, enabled } : pref
-            ),
-        },
-      };
-
-      saveOwnerDashboard(newData); // Simulate update backend here
-
-      return newData;
-    });
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", ownerId],
+      (oldData) => {
+        if (!oldData) return oldData;
+        const newData = updateChannel(oldData, channel, enabled);
+        saveOwnerDashboard(newData); // Simulate update backend here
+        return newData;
+      }
+    );
   }
 
   function handleConfirmPlan(planId: PlanId) {
     const plan = OWNER_PLANS.find((p) => p.id === planId);
     if (!plan) return;
 
-    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
-      if (!oldData) return oldData;
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", ownerId],
+      (oldData) => {
+        if (!oldData) return oldData;
 
-      const newData = {
-        ...oldData,
-        subscription: {
-          ...oldData.subscription,
+        const newData = updateSubcriptionPlan(oldData, {
           planId: plan.id,
           planName: plan.name,
           pricePerMonth: plan.pricePerMonth,
-        },
-      };
+        });
 
-      saveOwnerDashboard(newData); // Simulate update backend here
-
-      return newData;
-    });
+        saveOwnerDashboard(newData); // Simulate update backend here
+        return newData;
+      }
+    );
   }
 
   if (isLoading) return <Loading />;

@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { OwnerSubscription } from "@/domain/types";
+import { formatDate } from "@/utils";
 
 interface OwnerPlanCardProps {
   subscription: OwnerSubscription;
@@ -16,7 +17,6 @@ interface OwnerPlanCardProps {
 
 export function OwnerPlanCard({ subscription, onUpgrade }: OwnerPlanCardProps) {
   const { planName, pricePerMonth, renewalDate } = subscription;
-  const formattedRenewal = new Date(renewalDate).toLocaleDateString();
 
   return (
     <Card>
@@ -38,7 +38,7 @@ export function OwnerPlanCard({ subscription, onUpgrade }: OwnerPlanCardProps) {
         </div>
         <div>
           <p className="text-slate-500">Renews on</p>
-          <p className="font-medium">{formattedRenewal}</p>
+          <p className="font-medium">{formatDate(renewalDate)}</p>
         </div>
       </CardContent>
       <CardFooter>

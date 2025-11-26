@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import Loading from "@/components/shared/Loading";
 import Error from "@/components/shared/Error";
-import { capitalize } from "@/utils";
+import { capitalize, formatDate } from "@/utils";
 
 export function OwnerOverviewPage() {
   const ownerId = "u-owner-1";
@@ -136,8 +136,7 @@ export function OwnerOverviewPage() {
                               {location.longitude.toFixed(3)}
                             </div>
                             <div className="text-slate-500">
-                              Last seen:{" "}
-                              {new Date(location.lastSeenAt).toLocaleString()}
+                              Last seen: {formatDate(location.lastSeenAt)}
                             </div>
                           </div>
                         ) : (

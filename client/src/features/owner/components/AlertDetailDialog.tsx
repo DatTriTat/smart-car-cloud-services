@@ -1,4 +1,5 @@
-import { Badge } from "@/components/ui/badge";
+import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
+import { AlertStatusBadge } from "@/components/status/AlertStatusBadge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Alert, IoTDevice } from "@/domain/types";
-import { capitalize } from "@/utils";
+import { capitalize, formatDate } from "@/utils";
 
 interface AlertDetailDialogProps {
   alert: Alert | null;
@@ -17,18 +18,6 @@ interface AlertDetailDialogProps {
   onClose: () => void;
   onAcknowledge: (alertId: string) => void;
 }
-
-const severityStyles: Record<Alert["severity"], string> = {
-  INFO: "bg-sky-50 text-sky-700 border-sky-200",
-  WARN: "bg-amber-50 text-amber-700 border-amber-200",
-  CRITICAL: "bg-rose-50 text-rose-700 border-rose-200",
-};
-
-const statusStyles: Record<Alert["status"], string> = {
-  NEW: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  ACKNOWLEDGED: "bg-slate-50 text-slate-700 border-slate-200",
-  RESOLVED: "bg-slate-100 text-slate-500 border-slate-300",
-};
 
 export function AlertDetailDialog({
   alert,
@@ -48,10 +37,8 @@ export function AlertDetailDialog({
 
         <div className="space-y-3 text-sm text-slate-700 mt-2">
           <div className="flex items-center gap-2">
-            <Badge className={severityStyles[alert.severity]}>
-              {alert.severity}
-            </Badge>
-            <Badge className={statusStyles[alert.status]}>{alert.status}</Badge>
+            <AlertSeverityBadge severity={alert.severity} />
+            <AlertStatusBadge status={alert.status} />
           </div>
 
           <div>
@@ -66,7 +53,7 @@ export function AlertDetailDialog({
 
           <div>
             <p className="text-xs text-slate-500">Detected at</p>
-            <p>{new Date(alert.createdAt).toLocaleString()}</p>
+            <p>{formatDate(alert.createdAt)}</p>
           </div>
 
           {device && (
