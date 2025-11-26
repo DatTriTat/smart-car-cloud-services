@@ -90,7 +90,11 @@ export interface NotificationPreference {
   enabled: boolean;
 }
 
+// --- Plans ----
+export type PlanId = "BASIC" | "STANDARD" | "PREMIUM";
+
 export interface OwnerSubscription {
+  planId: PlanId;
   planName: string;
   pricePerMonth: number;
   renewalDate: string;

@@ -211,6 +211,7 @@ const carServiceConfigs: CarServiceConfig[] = [
 ];
 
 const subscription: OwnerSubscription = {
+  planId: "PREMIUM",
   planName: "Premium",
   pricePerMonth: 19.99,
   renewalDate: "2025-12-15T00:00:00Z",

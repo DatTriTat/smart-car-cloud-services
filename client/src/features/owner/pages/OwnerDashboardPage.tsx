@@ -6,6 +6,7 @@ import type {
   IntelligenceServiceKey,
   OwnerSubscription,
   NotificationChannelKey,
+  PlanId,
 } from "@/domain/types";
 import { AlertsSection } from "../components/AlertsSection";
 import { DevicesSection } from "../components/DevicesSection";
@@ -19,6 +20,8 @@ import { AlertsFilterBar } from "../components/AlertsFilterBar";
 import type { AlertSeverityFilter } from "../components/AlertsFilterBar";
 import Loading from "@/components/shared/Loading";
 import Error from "@/components/shared/Error";
+import { OWNER_PLANS } from "../config/ownerPlans";
+import { PlanUpgradeDialog } from "../components/PlanUpgradeDialog";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
@@ -32,6 +35,7 @@ export function OwnerDashboardPage() {
   const [severityFilter, setSeverityFilter] =
     useState<AlertSeverityFilter>("ALL");
   const [alertSearch, setAlertSearch] = useState<string>("");
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
 
   useEffect(() => {
     if (data?.carServiceConfigs) {
@@ -89,6 +93,22 @@ export function OwnerDashboardPage() {
             notificationPreferences: prev.notificationPreferences.map((pref) =>
               pref.channel === channel ? { ...pref, enabled } : pref
             ),
+          }
+        : prev
+    );
+  }
+
+  function handleConfirmPlan(planId: PlanId) {
+    const plan = OWNER_PLANS.find((p) => p.id === planId);
+    if (!plan) return;
+
+    setSubscription((prev) =>
+      prev
+        ? {
+            ...prev,
+            planId: plan.id,
+            planName: plan.name,
+            pricePerMonth: plan.pricePerMonth,
           }
         : prev
     );
@@ -170,7 +190,7 @@ export function OwnerDashboardPage() {
               <div className="grid gap-6 md:grid-cols-2">
                 <OwnerPlanCard
                   subscription={subscription}
-                  onUpgrade={() => console.log("Upgrade plan clicked")}
+                  onUpgrade={() => setIsPlanDialogOpen(true)}
                 />
 
                 <OwnerNotificationPreferencesSection
@@ -178,6 +198,15 @@ export function OwnerDashboardPage() {
                   onToggleChannel={handleToggleChannel}
                 />
               </div>
+            )}
+
+            {subscription && (
+              <PlanUpgradeDialog
+                open={isPlanDialogOpen}
+                currentPlanId={subscription.planId}
+                onClose={() => setIsPlanDialogOpen(false)}
+                onConfirm={handleConfirmPlan}
+              />
             )}
 
             <OwnerServiceConfigSection
