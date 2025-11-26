@@ -27,7 +27,7 @@ export function OwnerNotificationPreferencesSection({
     if (planId === "PREMIUM") return true;
 
     if (planId === "STANDARD") {
-      return pref.channel === "EMAIL" || pref.channel === "SMS";
+      return pref.channel === "EMAIL" || pref.channel === "PUSH";
     }
 
     return pref.channel === "EMAIL";

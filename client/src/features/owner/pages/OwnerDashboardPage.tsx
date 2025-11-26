@@ -22,9 +22,11 @@ import Loading from "@/components/shared/Loading";
 import Error from "@/components/shared/Error";
 import { OWNER_PLANS } from "../config/ownerPlans";
 import { PlanUpgradeDialog } from "../components/PlanUpgradeDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
+  const queryClient = useQueryClient();
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -112,6 +114,19 @@ export function OwnerDashboardPage() {
           }
         : prev
     );
+
+    queryClient.setQueryData(["ownerDashboard", ownerId], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        subscription: {
+          ...oldData.subscription,
+          planId: plan.id,
+          planName: plan.name,
+          pricePerMonth: plan.pricePerMonth,
+        },
+      };
+    });
   }
 
   if (isLoading) return <Loading />;
