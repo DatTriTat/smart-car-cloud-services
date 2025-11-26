@@ -51,26 +51,28 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         <Separator />
 
         {/* My Cars list */}
-        <div className="mt-4">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">
-            My Cars
-          </h3>
-          <div className="space-y-1">
-            {cars.map((car) => (
-              <button
-                key={car.id}
-                className={`w-full text-left px-3 py-2 rounded text-sm ${
-                  car.id === selectedCarId
-                    ? "bg-slate-900 text-white"
-                    : "hover:bg-slate-100 hover:cursor-pointer text-slate-700"
-                }`}
-                onClick={() => setSelectedCarId(car.id)}
-              >
-                {car.make} {car.model}
-              </button>
-            ))}
+        {location.pathname.startsWith("/owner/dashboard") && (
+          <div className="mt-4">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">
+              My Cars
+            </h3>
+            <div className="space-y-1">
+              {cars.map((car) => (
+                <button
+                  key={car.id}
+                  className={`w-full text-left px-3 py-2 rounded text-sm ${
+                    car.id === selectedCarId
+                      ? "bg-slate-900 text-white"
+                      : "hover:bg-slate-100 hover:cursor-pointer text-slate-700"
+                  }`}
+                  onClick={() => setSelectedCarId(car.id)}
+                >
+                  {car.make} {car.model}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </aside>
 
       <main className="flex-1 p-6">
