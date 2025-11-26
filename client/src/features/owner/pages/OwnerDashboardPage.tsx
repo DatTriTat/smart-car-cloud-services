@@ -194,6 +194,7 @@ export function OwnerDashboardPage() {
                 />
 
                 <OwnerNotificationPreferencesSection
+                  planId={subscription.planId}
                   preferences={subscription.notificationPreferences}
                   onToggleChannel={handleToggleChannel}
                 />

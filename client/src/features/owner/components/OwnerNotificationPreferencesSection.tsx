@@ -9,17 +9,30 @@ import { Switch } from "@/components/ui/switch";
 import type {
   NotificationPreference,
   NotificationChannelKey,
+  PlanId,
 } from "@/domain/types";
 
 interface OwnerNotificationPreferencesSectionProps {
+  planId: PlanId;
   preferences: NotificationPreference[];
   onToggleChannel: (channel: NotificationChannelKey, enabled: boolean) => void;
 }
 
 export function OwnerNotificationPreferencesSection({
+  planId,
   preferences,
   onToggleChannel,
 }: OwnerNotificationPreferencesSectionProps) {
+  const filteredPreferences = preferences.filter((pref) => {
+    if (planId === "PREMIUM") return true;
+
+    if (planId === "STANDARD") {
+      return pref.channel === "EMAIL" || pref.channel === "SMS";
+    }
+
+    return pref.channel === "EMAIL";
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -35,7 +48,7 @@ export function OwnerNotificationPreferencesSection({
           </div>
         ) : (
           <div className="space-y-3">
-            {preferences.map((pref) => (
+            {filteredPreferences.map((pref) => (
               <div
                 key={pref.channel}
                 className="flex items-center justify-between gap-4 border border-slate-100 rounded-md px-3 py-2.5 bg-slate-50/60"
