@@ -7,6 +7,7 @@ import { IoTDevicesOverviewPage } from "@/features/iot/pages/IoTDevicesOverviewP
 import { IoTCarDevicesPage } from "@/features/iot/pages/IoTCarDevicesPage";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RequireAuth } from "@/auth/RequireAuth";
+import { CloudOverviewPage } from "@/features/cloud/pages/CloudOverviewPage";
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +55,14 @@ export const router = createBrowserRouter([
     element: (
       <RequireAuth>
         <IoTCarDevicesPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/cloud/overview",
+    element: (
+      <RequireAuth>
+        <CloudOverviewPage />
       </RequireAuth>
     ),
   },
