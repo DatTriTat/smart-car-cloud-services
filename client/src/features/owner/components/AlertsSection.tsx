@@ -56,7 +56,7 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
       </CardHeader>
       <CardContent>
         {alerts.length === 0 ? (
-          <div className="p-6 text-sm text-slate-500">
+          <div className="text-slate-500">
             No alerts for this car in the recent period.
           </div>
         ) : (
@@ -84,29 +84,23 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
                     onClick={() => onSelectAlert(alert)}
                     className="hover:cursor-pointer"
                   >
-                    <TableCell className="align-top text-xs text-slate-600">
+                    <TableCell className="text-slate-700">
                       {formatDate(alert.createdAt)}
                     </TableCell>
-                    <TableCell className="align-top text-xs font-medium text-slate-800">
+                    <TableCell className="font-medium text-slate-700">
                       {capitalize(alert.type)}
                     </TableCell>
-                    <TableCell className="align-top">
-                      <Badge
-                        className={`text-[10px] ${
-                          severityStyles[alert.severity]
-                        }`}
-                      >
+                    <TableCell>
+                      <Badge className={severityStyles[alert.severity]}>
                         {alert.severity}
                       </Badge>
                     </TableCell>
-                    <TableCell className="align-top">
-                      <Badge
-                        className={`text-[10px] ${statusStyles[alert.status]}`}
-                      >
+                    <TableCell>
+                      <Badge className={statusStyles[alert.status]}>
                         {alert.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="align-top text-slate-700">
+                    <TableCell className="text-slate-700">
                       {alert.message}
                     </TableCell>
                   </TableRow>

@@ -43,7 +43,7 @@ export function OwnerNotificationPreferencesSection({
       </CardHeader>
       <CardContent>
         {preferences.length === 0 ? (
-          <div className="text-sm text-slate-500">
+          <div className=" text-slate-500">
             No notification channels configured.
           </div>
         ) : (
@@ -54,10 +54,8 @@ export function OwnerNotificationPreferencesSection({
                 className="flex items-center justify-between gap-4 border border-slate-100 rounded-md px-3 py-2.5 bg-slate-50/60"
               >
                 <div>
-                  <p className="text-sm font-medium text-slate-900">
-                    {pref.label}
-                  </p>
-                  <p className="text-xs text-slate-500">{pref.description}</p>
+                  <p className="font-medium text-slate-900">{pref.label}</p>
+                  <p className="text-sm text-slate-500">{pref.description}</p>
                 </div>
                 <Switch
                   checked={pref.enabled}

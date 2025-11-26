@@ -27,22 +27,22 @@ export function OwnerPlanCard({ subscription, onUpgrade }: OwnerPlanCardProps) {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-3 text-sm text-slate-700">
+      <CardContent className="space-y-3 text-slate-700">
         <div>
-          <p className="text-xs text-slate-500">Current plan</p>
+          <p className="text-slate-500">Current plan</p>
           <p className="font-medium">{planName}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Price</p>
+          <p className="text-slate-500">Price</p>
           <p className="font-medium">{pricePerMonth.toFixed(2)}/month</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Renews on</p>
+          <p className="text-slate-500">Renews on</p>
           <p className="font-medium">{formattedRenewal}</p>
         </div>
       </CardContent>
       <CardFooter>
-        <Button size="sm" className="ml-auto" onClick={onUpgrade}>
+        <Button className="ml-auto" onClick={onUpgrade}>
           Upgrade plan
         </Button>
       </CardFooter>

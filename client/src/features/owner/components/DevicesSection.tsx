@@ -47,10 +47,10 @@ export function DevicesSection({ devices }: DevicesSectionProps) {
               >
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium text-slate-900 line-clamp-1">
+                    <p className="font-medium text-slate-900 line-clamp-1">
                       {device.deviceName}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-slate-500">
                       {formatType(device.deviceType)}
                     </p>
                   </div>
@@ -58,7 +58,7 @@ export function DevicesSection({ devices }: DevicesSectionProps) {
                     {device.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm text-slate-500">
                   Connected since{" "}
                   {new Date(device.createdAt).toLocaleDateString()}
                 </p>

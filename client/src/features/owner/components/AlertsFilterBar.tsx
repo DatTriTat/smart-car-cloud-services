@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { capitalize } from "@/utils";
 
 export type AlertSeverityFilter = "ALL" | "INFO" | "WARN" | "CRITICAL";
@@ -39,11 +40,10 @@ export function AlertsFilterBar({
             <Button
               key={option}
               variant={isActive ? "default" : "ghost"}
-              size="sm"
               className={
                 isActive
-                  ? "rounded-none"
-                  : "rounded-none text-slate-700 hover:bg-slate-50"
+                  ? "px-6 rounded-none"
+                  : "px-6 rounded-none text-slate-700 hover:bg-slate-50"
               }
               onClick={() => onChangeSeverity(option)}
             >
@@ -52,6 +52,7 @@ export function AlertsFilterBar({
           );
         })}
       </div>
+
       {/* Right: search + count */}
       <div className="flex items-center gap-3">
         <div className="text-sm text-slate-500 hidden md:block">

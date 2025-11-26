@@ -64,7 +64,7 @@ export function PlanUpgradeDialog({
                 key={plan.id}
                 type="button"
                 onClick={() => setSelectedPlanId(plan.id)}
-                className={`text-left flex flex-col justify-between border rounded-lg p-3 bg-white transition ${
+                className={`text-left flex flex-col justify-around border rounded-lg p-3 bg-white transition ${
                   isSelected
                     ? "border-slate-900 shadow-sm"
                     : "border-slate-200 hover:border-slate-300"
@@ -88,7 +88,7 @@ export function PlanUpgradeDialog({
                   <p className="mb-4">{plan.description}</p>
 
                   {plan.features.slice(0, 3).map((f) => (
-                    <p key={f} className="text-xs text-slate-500 mt-2">
+                    <p key={f} className="text-sm text-slate-500 mt-2">
                       • {f}
                     </p>
                   ))}
@@ -99,12 +99,10 @@ export function PlanUpgradeDialog({
         </div>
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button size="sm" onClick={handleConfirm}>
-            Confirm change
-          </Button>
+          <Button onClick={handleConfirm}>Confirm change</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
