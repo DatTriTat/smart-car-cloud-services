@@ -25,7 +25,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
       <aside className="w-64 bg-white border-r p-4 flex flex-col">
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Smart Car Cloud</h2>
-          <p className="text-xs text-slate-500">Signed in as {owner.name}</p>
+          <p className="text-sm text-slate-500">Signed in as {owner.name}</p>
         </div>
 
         {/* Top navigation */}
@@ -39,7 +39,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
                 className={`block px-3 py-2 rounded text-sm transition ${
                   isActive
                     ? "bg-slate-900 text-white"
-                    : "text-slate-700 hover:bg-slate-100"
+                    : "text-slate-700 hover:bg-slate-200"
                 }`}
               >
                 {item.label}
