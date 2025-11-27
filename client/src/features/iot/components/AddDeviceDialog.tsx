@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -63,65 +64,66 @@ export function AddDeviceDialog({
           <DialogTitle>Add Device</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          <div>
-            <label className="block text-slate-500 mb-1">Device name</label>
-            <Input
-              value={deviceName}
-              onChange={(e) => setDeviceName(e.target.value)}
-              placeholder="Front cabin mic"
-              className="h-10"
-            />
-          </div>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel>Device name</FieldLabel>
+              <Input
+                value={deviceName}
+                onChange={(e) => setDeviceName(e.target.value)}
+                placeholder="Front cabin mic"
+              />
+            </Field>
 
-          <div>
-            <label className="block text-slate-500 mb-1">Device type</label>
-            <Select
-              value={deviceType}
-              onValueChange={(value) => setDeviceType(value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Device Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Device Type</SelectLabel>
-                  <SelectItem value="AUDIO">Audio Sensor</SelectItem>
-                  <SelectItem value="CAMERA">Camera</SelectItem>
-                  <SelectItem value="MICROPHONE">Microphone</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+            <Field>
+              <FieldLabel>Device type</FieldLabel>
+              <Select
+                value={deviceType}
+                onValueChange={(value) => setDeviceType(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Device Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Device Type</SelectLabel>
+                    <SelectItem value="AUDIO">Audio Sensor</SelectItem>
+                    <SelectItem value="CAMERA">Camera</SelectItem>
+                    <SelectItem value="MICROPHONE">Microphone</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
 
-          <div>
-            <label className="block text-slate-500 mb-1">Status</label>
-            <Select
-              value={status}
-              onValueChange={(value) =>
-                setStatus(value === "ONLINE" ? "ONLINE" : "OFFLINE")
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Device Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Device Status</SelectLabel>
-                  <SelectItem value="ONLINE">Online</SelectItem>
-                  <SelectItem value="OFFLINE">Offline</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+            <Field>
+              <FieldLabel>Status</FieldLabel>
+              <Select
+                value={status}
+                onValueChange={(value) =>
+                  setStatus(value === "ONLINE" ? "ONLINE" : "OFFLINE")
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Device Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Device Status</SelectLabel>
+                    <SelectItem value="ONLINE">Online</SelectItem>
+                    <SelectItem value="OFFLINE">Offline</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
 
-            <Button type="submit">Save Device</Button>
-          </DialogFooter>
+              <Button type="submit">Save Device</Button>
+            </DialogFooter>
+          </FieldGroup>
         </form>
       </DialogContent>
     </Dialog>
