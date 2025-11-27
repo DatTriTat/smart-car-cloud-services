@@ -156,16 +156,6 @@ AlertThreshold.belongsTo(AlertType, {
     onUpdate: "CASCADE",
 });
 
-// User -> PushSubscription (One-to-Many)
-// User.hasMany(PushSubscription, {
-//     foreignKey: "userId",
-//     as: "pushSubscriptions",
-//     onDelete: "CASCADE",
-// });
-// PushSubscription.belongsTo(User, {
-//     foreignKey: "userId",
-//     as: "user",
-// });
 
 module.exports = {
     User,

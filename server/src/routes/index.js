@@ -7,5 +7,6 @@ router.use("/alert-types", require("./alertType"));
 router.use("/alert-thresholds", require("./alertThreshold"));
 router.use("/alerts", require("./alert"));
 router.use("/sse", require("./sse"));
+router.use("/cars", require("./car"));
 
 module.exports = router;
