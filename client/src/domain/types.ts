@@ -101,6 +101,18 @@ export interface OwnerSubscription {
   notificationPreferences: NotificationPreference[];
 }
 
+// ---- AI Models ----
+export type AiModeStatus = "RUNNING" | "TRAINING" | "OFFLINE";
+
+export interface AiModel {
+  id: string;
+  name: string;
+  type: string;
+  version: string;
+  status: AiModeStatus;
+  updatedAt: string;
+}
+
 // ---- Owner Dashboard aggregate ----
 export interface OwnerDashboardData {
   owner: User;
@@ -110,4 +122,5 @@ export interface OwnerDashboardData {
   carServiceConfigs: CarServiceConfig[];
   subscription: OwnerSubscription;
   carLocations: CarLocation[];
+  aiModels: AiModel[];
 }

@@ -245,4 +245,30 @@ export const mockOwnerDashboardData: OwnerDashboardData = {
   carServiceConfigs,
   subscription,
   carLocations,
+  aiModels: [
+    {
+      id: "model-1",
+      name: "Engine Noise Classifier",
+      type: "Engine audio anomaly detection",
+      version: "v1.2.0",
+      status: "RUNNING",
+      updatedAt: "2025-11-20T10:00:00Z",
+    },
+    {
+      id: "model-2",
+      name: "Cabin Voice Detector",
+      type: "Passenger / child / pet voice detection",
+      version: "v0.9.3",
+      status: "TRAINING",
+      updatedAt: "2025-11-22T15:30:00Z",
+    },
+    {
+      id: "model-3",
+      name: "Glass Break Detector",
+      type: "Security event classification",
+      version: "v1.0.0",
+      status: "OFFLINE",
+      updatedAt: "2025-11-18T08:45:00Z",
+    },
+  ],
 };
