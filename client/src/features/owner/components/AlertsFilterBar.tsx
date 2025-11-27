@@ -59,7 +59,7 @@ export function AlertsFilterBar({
           value={searchQuery}
           onChange={(e) => onChangeSearch(e.target.value)}
           placeholder="Search alerts..."
-          className="h-8 w-60 border-slate-400 bg-white"
+          className="h-9 w-60 border-slate-400 bg-white"
         />
       </div>
     </div>
