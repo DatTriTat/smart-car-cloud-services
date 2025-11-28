@@ -19,13 +19,18 @@ import { saveOwnerDashboard } from "@/features/owner/api/ownerDashboardStorage";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AddAlertTypeDialog } from "../components/AddAlertTypeDialog";
+import { EditAlertTypeDialog } from "../components/EditAlertTypeDialog";
 
 export function CloudAlertTypesPage() {
-  const onwerId = "u-owner-1";
-  const { data, isLoading, error } = useOwnerDashboard(onwerId);
+  const ownerId = "u-owner-1";
+  const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const queryClient = useQueryClient();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingAlertType, setEditingAlertType] = useState<AlertTypeDef | null>(
+    null
+  );
 
   function handleAddAlertType(payload: {
     key: string;
@@ -46,13 +51,35 @@ export function CloudAlertTypesPage() {
     };
 
     queryClient.setQueryData<OwnerDashboardData | undefined>(
-      ["ownerDashboard", onwerId],
+      ["ownerDashboard", ownerId],
       (oldData) => {
         if (!oldData) return oldData;
 
         const newData: OwnerDashboardData = {
           ...oldData,
           alertTypes: [...oldData.alertTypes, newType],
+        };
+
+        saveOwnerDashboard(newData);
+
+        return newData;
+      }
+    );
+  }
+
+  function handleSaveEditedAlertType(updated: AlertTypeDef) {
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", ownerId],
+      (oldData) => {
+        if (!oldData) return oldData;
+
+        const newAlertTypes = oldData.alertTypes.map((t) =>
+          t.id === updated.id ? updated : t
+        );
+
+        const newData: OwnerDashboardData = {
+          ...oldData,
+          alertTypes: newAlertTypes,
         };
 
         saveOwnerDashboard(newData);
@@ -133,6 +160,17 @@ export function CloudAlertTypesPage() {
                           </span>
                         )}
                       </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setEditingAlertType(t);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -146,6 +184,13 @@ export function CloudAlertTypesPage() {
         open={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
         onSave={handleAddAlertType}
+      />
+
+      <EditAlertTypeDialog
+        open={isEditDialogOpen}
+        alertType={editingAlertType}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSave={handleSaveEditedAlertType}
       />
     </CloudLayout>
   );
