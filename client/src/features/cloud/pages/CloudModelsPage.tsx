@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { AddModelDialog } from "../components/AddModelDialog";
 import { EditModelDialog } from "../components/EditModelDialog";
 import { DeleteModelDialog } from "../components/DeleteModelDialog";
+import { Link } from "react-router";
 
 export function CloudModelsPage() {
   const ownerId = "u-owner-1";
@@ -155,7 +156,14 @@ export function CloudModelsPage() {
                 <TableBody>
                   {models.map((model) => (
                     <TableRow key={model.id}>
-                      <TableCell>{model.name}</TableCell>
+                      <TableCell>
+                        <Link
+                          to={`/cloud/models/${model.id}`}
+                          className="hover:underline"
+                        >
+                          {model.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>{model.type}</TableCell>
                       <TableCell>{model.version}</TableCell>
                       <TableCell

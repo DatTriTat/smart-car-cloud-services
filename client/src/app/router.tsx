@@ -11,6 +11,7 @@ import { CloudOverviewPage } from "@/features/cloud/pages/CloudOverviewPage";
 import { CloudAlertsPage } from "@/features/cloud/pages/CloudAlertsPage";
 import { CloudModelsPage } from "@/features/cloud/pages/CloudModelsPage";
 import { CloudAlertTypesPage } from "@/features/cloud/pages/CloudAlertTypesPage";
+import { CloudModelDetailPage } from "@/features/cloud/pages/CloudModelDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -90,6 +91,14 @@ export const router = createBrowserRouter([
     element: (
       <RequireAuth>
         <CloudModelsPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/cloud/models/:modelId",
+    element: (
+      <RequireAuth>
+        <CloudModelDetailPage />
       </RequireAuth>
     ),
   },
