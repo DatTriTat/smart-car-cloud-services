@@ -40,7 +40,6 @@ NotificationType.init(
     }
 );
 
-// javascript
 NotificationType.findByType = function (notificationType) {
     const normalized = String(notificationType).toLowerCase().trim();
     return this.findOne({
