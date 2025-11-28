@@ -113,6 +113,23 @@ export interface AiModel {
   updatedAt: string;
 }
 
+export type AlertCategory =
+  | "SAFETY"
+  | "SECURITY"
+  | "MAINTENANCE"
+  | "ANIMAL"
+  | "PASSENGER";
+
+export interface AlertTypeDef {
+  id: string;
+  key: string;
+  name: string;
+  category: AlertCategory;
+  defaultSeverity: "INFO" | "WARN" | "CRITICAL";
+  description: string;
+  enabled: boolean;
+}
+
 // ---- Owner Dashboard aggregate ----
 export interface OwnerDashboardData {
   owner: User;
@@ -123,4 +140,5 @@ export interface OwnerDashboardData {
   subscription: OwnerSubscription;
   carLocations: CarLocation[];
   aiModels: AiModel[];
+  alertTypes: AlertTypeDef[];
 }

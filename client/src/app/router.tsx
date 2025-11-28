@@ -10,6 +10,7 @@ import { RequireAuth } from "@/auth/RequireAuth";
 import { CloudOverviewPage } from "@/features/cloud/pages/CloudOverviewPage";
 import { CloudAlertsPage } from "@/features/cloud/pages/CloudAlertsPage";
 import { CloudModelsPage } from "@/features/cloud/pages/CloudModelsPage";
+import { CloudAlertTypesPage } from "@/features/cloud/pages/CloudAlertTypesPage";
 
 export const router = createBrowserRouter([
   {
@@ -73,6 +74,14 @@ export const router = createBrowserRouter([
     element: (
       <RequireAuth>
         <CloudAlertsPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/cloud/alert-types",
+    element: (
+      <RequireAuth>
+        <CloudAlertTypesPage />
       </RequireAuth>
     ),
   },

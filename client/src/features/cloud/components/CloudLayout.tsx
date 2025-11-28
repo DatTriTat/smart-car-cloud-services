@@ -13,8 +13,9 @@ export function CloudLayout({ children }: CloudLayoutProps) {
 
   const navItems = [
     { label: "Overview", path: "/cloud/overview" },
-    { label: "Alerts", path: "/cloud/alerts" }, // future
-    { label: "AI models", path: "/cloud/models" }, // future
+    { label: "Alerts", path: "/cloud/alerts" },
+    { label: "Alert Types", path: "/cloud/alert-types" },
+    { label: "AI models", path: "/cloud/models" },
     { label: "Database", path: "/cloud/database" }, // future
   ];
 

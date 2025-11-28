@@ -271,4 +271,54 @@ export const mockOwnerDashboardData: OwnerDashboardData = {
       updatedAt: "2025-11-18T08:45:00Z",
     },
   ],
+  alertTypes: [
+    {
+      id: "alert-type-1",
+      key: "engine_knock",
+      name: "Engine knock detected",
+      category: "MAINTENANCE",
+      defaultSeverity: "WARN",
+      description: "Abnormal engine knocking or pinging sound detected.",
+      enabled: true,
+    },
+    {
+      id: "alert-type-2",
+      key: "tire_squeal",
+      name: "Tire squeal",
+      category: "SAFETY",
+      defaultSeverity: "WARN",
+      description:
+        "High-friction tire squeal indicating hard braking or sharp turns.",
+      enabled: true,
+    },
+    {
+      id: "alert-type-3",
+      key: "glass_break",
+      name: "Glass break",
+      category: "SECURITY",
+      defaultSeverity: "CRITICAL",
+      description: "Sharp glass breaking sound near or inside the vehicle.",
+      enabled: true,
+    },
+    {
+      id: "alert-type-4",
+      key: "dog_bark",
+      name: "Dog barking",
+      category: "ANIMAL",
+      defaultSeverity: "INFO",
+      description:
+        "Dog barking sound detected inside or near the vehicle cabin.",
+      enabled: true,
+    },
+    {
+      id: "alert-type-5",
+      key: "child_cry",
+      name: "Child crying",
+      category: "PASSENGER",
+      defaultSeverity: "CRITICAL",
+      description:
+        "Persistent child crying detected inside the cabin; potential safety/comfort issue.",
+      enabled: true,
+    },
+  ],
 };
