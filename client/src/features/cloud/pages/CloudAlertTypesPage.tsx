@@ -20,6 +20,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AddAlertTypeDialog } from "../components/AddAlertTypeDialog";
 import { EditAlertTypeDialog } from "../components/EditAlertTypeDialog";
+import { DeleteAlertTypeDialog } from "../components/DeleteAlertTypeDialog";
 
 export function CloudAlertTypesPage() {
   const ownerId = "u-owner-1";
@@ -27,10 +28,15 @@ export function CloudAlertTypesPage() {
   const queryClient = useQueryClient();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingAlertType, setEditingAlertType] = useState<AlertTypeDef | null>(
     null
   );
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingAlertType, setDeletingAlertType] =
+    useState<AlertTypeDef | null>(null);
 
   function handleAddAlertType(payload: {
     key: string;
@@ -78,6 +84,28 @@ export function CloudAlertTypesPage() {
         );
 
         const newData: OwnerDashboardData = {
+          ...oldData,
+          alertTypes: newAlertTypes,
+        };
+
+        saveOwnerDashboard(newData);
+
+        return newData;
+      }
+    );
+  }
+
+  function handleDeleteAlertType(id: string) {
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", ownerId],
+      (oldData) => {
+        if (!oldData) return;
+
+        const newAlertTypes = oldData.alertTypes.filter(
+          (type) => type.id !== id
+        );
+
+        const newData = {
           ...oldData,
           alertTypes: newAlertTypes,
         };
@@ -160,7 +188,7 @@ export function CloudAlertTypesPage() {
                           </span>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="flex gap-4 justify-end">
                         <Button
                           variant="outline"
                           onClick={() => {
@@ -169,6 +197,14 @@ export function CloudAlertTypesPage() {
                           }}
                         >
                           Edit
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setDeletingAlertType(t);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                        >
+                          Remove
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -191,6 +227,13 @@ export function CloudAlertTypesPage() {
         alertType={editingAlertType}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={handleSaveEditedAlertType}
+      />
+
+      <DeleteAlertTypeDialog
+        open={isDeleteDialogOpen}
+        alertType={deletingAlertType}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteAlertType}
       />
     </CloudLayout>
   );
