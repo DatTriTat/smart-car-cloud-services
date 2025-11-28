@@ -1,6 +1,6 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
-import type { AlertTypeDef } from "@/domain/types";
+import type { OwnerDashboardData, AlertTypeDef } from "@/domain/types";
 import { useOwnerDashboard } from "@/features/owner/hooks/useOwnerDashboard";
 import { CloudLayout } from "../components/CloudLayout";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
@@ -14,10 +14,53 @@ import {
 } from "@/components/ui/table";
 import { capitalize } from "@/utils";
 import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
+import { useQueryClient } from "@tanstack/react-query";
+import { saveOwnerDashboard } from "@/features/owner/api/ownerDashboardStorage";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { AddAlertTypeDialog } from "../components/AddAlertTypeDialog";
 
 export function CloudAlertTypesPage() {
   const onwerId = "u-owner-1";
   const { data, isLoading, error } = useOwnerDashboard(onwerId);
+  const queryClient = useQueryClient();
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  function handleAddAlertType(payload: {
+    key: string;
+    name: string;
+    category: AlertTypeDef["category"];
+    defaultSeverity: AlertTypeDef["defaultSeverity"];
+    description: string;
+    enabled: boolean;
+  }) {
+    const newType: AlertTypeDef = {
+      id: `alert-type-${Date.now()}`,
+      key: payload.key,
+      name: payload.name,
+      category: payload.category,
+      defaultSeverity: payload.defaultSeverity,
+      description: payload.description,
+      enabled: payload.enabled,
+    };
+
+    queryClient.setQueryData<OwnerDashboardData | undefined>(
+      ["ownerDashboard", onwerId],
+      (oldData) => {
+        if (!oldData) return oldData;
+
+        const newData: OwnerDashboardData = {
+          ...oldData,
+          alertTypes: [...oldData.alertTypes, newType],
+        };
+
+        saveOwnerDashboard(newData);
+
+        return newData;
+      }
+    );
+  }
 
   if (isLoading) return <Loading />;
 
@@ -47,7 +90,12 @@ export function CloudAlertTypesPage() {
         {/* Models table */}
         <Card>
           <CardHeader>
-            <CardTitle>Predefined alert types</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              Predefined alert types
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                Add Alert Type
+              </Button>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {alertTypes.length === 0 ? (
@@ -93,6 +141,12 @@ export function CloudAlertTypesPage() {
           </CardContent>
         </Card>
       </div>
+
+      <AddAlertTypeDialog
+        open={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        onSave={handleAddAlertType}
+      />
     </CloudLayout>
   );
 }

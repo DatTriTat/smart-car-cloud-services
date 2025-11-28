@@ -99,7 +99,7 @@ export function AddModelDialog({ open, onClose, onSave }: AddModelDialogProps) {
                 value={status}
                 onValueChange={(value) => setStatus(value as AiModeStatus)}
               >
-                <SelectTrigger className="bg-slate-50">
+                <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
