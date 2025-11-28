@@ -102,9 +102,7 @@ AlertThreshold.findByAlertType = async function (alertType) {
  */
 AlertThreshold.getThresholdMap = async function () {
     const thresholds = await this.findAll();
-    return new Map(
-        thresholds.map((t) => [t.alertType, parseFloat(t.minThreshold)])
-    );
+    return new Map(thresholds.map((t) => [t.alertType, parseFloat(t.minThreshold)]));
 };
 
 /**
@@ -124,13 +122,13 @@ AlertThreshold.findBestAlert = async function (classifiedResults) {
     const validAlerts = classifiedResults
         .map((result) => {
             const threshold = thresholdMap.get(result.type);
-            if (!threshold) return null;
+            if (threshold === undefined) return null;
 
             if (result.confidence >= threshold) {
                 return {
                     type: result.type,
                     confidence: result.confidence,
-                    threshold: threshold,
+                    threshold,
                 };
             }
             return null;

@@ -5,24 +5,18 @@ const { OK, CREATED } = require("../core/success.response");
 const { BadRequestError, AuthFailureError } = require("../core/error.response");
 
 class AuthController {
-  /**
-   * User signup
-   * Public endpoint - no authentication required
-   * POST /api/v1/auth/signup
-   */
   async signup(request, response) {
     const { username, password, email, role } = request.body;
-
-    // Validate required fields
     if (!username || !password || !email) {
       throw new BadRequestError("Username, password, and email are required");
     }
+    const normalizedRole = typeof role === "string" ? role.toLowerCase().trim() : role;
 
     const result = await AuthService.signup({
       username,
       password,
       email,
-      role: role || "user",
+      role: normalizedRole || "user",
     });
 
     return new CREATED({
@@ -31,75 +25,38 @@ class AuthController {
     }).send(response);
   }
 
-  /**
-   * User login
-   * Public endpoint - no authentication required
-   * POST /api/v1/auth/login
-   */
   async login(request, response) {
     const { username, password } = request.body;
-
-    // Validate required fields
     if (!username || !password) {
       throw new BadRequestError("Username and password are required");
     }
 
     const result = await AuthService.login({ username, password });
-
-    return new OK({
-      message: "Login successful",
-      data: result,
-    }).send(response);
+    return new OK({ message: "Login successful", data: result }).send(response);
   }
 
-  /**
-   * Confirm user signup
-   * Public endpoint - no authentication required
-   * POST /api/v1/auth/confirm
-   */
   async confirm(request, response) {
     const { username, code } = request.body || {};
-
     if (!username || !code) {
       throw new BadRequestError("Username and code are required");
     }
 
     const result = await AuthService.confirmSignUp({ username, code });
-
-    return new OK({
-      message: result.message || "Account confirmed successfully",
-      data: null,
-    }).send(response);
+    return new OK({ message: result.message || "Account confirmed successfully", data: null }).send(response);
   }
 
-  /**
-   * Resend confirmation code
-   * Public endpoint - no authentication required
-   * POST /api/v1/auth/resend
-   */
   async resend(request, response) {
     const { username } = request.body || {};
-
     if (!username) {
       throw new BadRequestError("Username is required");
     }
 
     const result = await AuthService.resendConfirmation({ username });
-
-    return new OK({
-      message: result.message || "Verification code resent successfully",
-      data: null,
-    }).send(response);
+    return new OK({ message: result.message || "Verification code resent successfully", data: null }).send(response);
   }
 
-  /**
-   * Get authenticated user profile
-   * Protected endpoint - requires authentication
-   * GET /api/v1/profile
-   */
   async getProfile(request, response) {
     const requester = request.user;
-
     if (!requester || !requester.username) {
       throw new AuthFailureError("Authentication required");
     }
@@ -110,94 +67,43 @@ class AuthController {
       sub: requester.sub,
     });
 
-    return new OK({
-      message: "Profile retrieved successfully",
-      data: result,
-    }).send(response);
+    return new OK({ message: "Profile retrieved successfully", data: result }).send(response);
   }
 
-  /**
-   * Update user role
-   * Protected endpoint - requires authentication
-   * API Gateway ensures ONLY ADMINS can access this endpoint
-   * PATCH /api/v1/role/:username
-   */
   async updateRole(request, response) {
     const { username } = request.params;
     const { role } = request.body;
-    
     if (!role) {
       throw new BadRequestError("Role is required");
     }
 
-    const result = await AuthService.updateUserRole(username, role);
+    const normalizedRole = typeof role === "string" ? role.toLowerCase().trim() : role;
 
-    return new OK({
-      message: result.message,
-      data: result.user,
-    }).send(response);
+    const result = await AuthService.updateUserRole(username, normalizedRole);
+    return new OK({ message: result.message, data: result.user }).send(response);
   }
 
-  /**
-   * Deactivate user account
-   * Protected endpoint - requires admin authentication
-   * PATCH /api/v1/users/:username/deactivate
-   */
   async deactivateUser(request, response) {
     const { username } = request.params;
-
     const result = await AuthService.deactivateUser(username);
-
-    return new OK({
-      message: result.message,
-      data: result.user,
-    }).send(response);
+    return new OK({ message: result.message, data: result.user }).send(response);
   }
 
-  /**
-   * Activate user account
-   * Protected endpoint - requires admin authentication
-   * PATCH /api/v1/users/:username/activate
-   */
   async activateUser(request, response) {
     const { username } = request.params;
-
     const result = await AuthService.activateUser(username);
-
-    return new OK({
-      message: result.message,
-      data: result.user,
-    }).send(response);
+    return new OK({ message: result.message, data: result.user }).send(response);
   }
 
-  /**
-   * Get all active users
-   * Protected endpoint - requires admin authentication
-   * GET /api/v1/users/active
-   */
-  async getActiveUsers(request, response) {
+  async getActiveUsers(_request, response) {
     const result = await AuthService.getActiveUsers();
-
-    return new OK({
-      message: "Active users retrieved successfully",
-      data: result,
-    }).send(response);
+    return new OK({ message: "Active users retrieved successfully", data: result }).send(response);
   }
 
-  /**
-   * Get users by role
-   * Protected endpoint - requires admin authentication
-   * GET /api/v1/users/role/:role
-   */
   async getUsersByRole(request, response) {
     const { role } = request.params;
-
     const result = await AuthService.getUsersByRole(role);
-
-    return new OK({
-      message: `Users with role '${role}' retrieved successfully`,
-      data: result,
-    }).send(response);
+    return new OK({ message: `Users with role '${role}' retrieved successfully`, data: result }).send(response);
   }
 }
 
