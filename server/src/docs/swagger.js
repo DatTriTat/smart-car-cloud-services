@@ -254,6 +254,91 @@ const components = {
                 data: {$ref: "#/components/schemas/ServiceConfiguration"}
             }
         },
+        // --- Subscription Schemas ---
+        Subscription: {
+            type: "object",
+            properties: {
+                id: {type: "string", format: "uuid"},
+                userId: {type: "string", format: "uuid"},
+                notificationTypes: {
+                    type: "array",
+                    items: {type: "string"},
+                    example: ["email", "sms"]
+                },
+                alertTypes: {
+                    type: "array",
+                    items: {type: "string"},
+                    example: ["engine_warning", "battery_low"]
+                },
+                createdAt: {type: "string", format: "date-time"},
+                updatedAt: {type: "string", format: "date-time"}
+            }
+        },
+        SubscriptionInput: {
+            type: "object",
+            required: ["userId"],
+            properties: {
+                userId: {type: "string", format: "uuid"},
+                notificationTypes: {
+                    type: "array",
+                    items: {type: "string"},
+                    example: ["email"]
+                },
+                alertTypes: {
+                    type: "array",
+                    items: {type: "string"},
+                    example: ["engine_warning", "collision_detected"]
+                }
+            }
+        },
+        SubscriptionUpdateInput: {
+            type: "object",
+            properties: {
+                notificationTypes: {
+                    type: "array",
+                    items: {type: "string"},
+                    example: ["email", "sms"]
+                },
+                alertTypes: {
+                    type: "array",
+                    items: {type: "string"},
+                    example: ["engine_warning", "battery_low", "collision_detected"]
+                }
+            }
+        },
+        SubscriptionResponse: {
+            type: "object",
+            properties: {
+                message: {type: "string", example: "Subscription retrieved successfully"},
+                status: {type: "integer", example: 200},
+                data: {$ref: "#/components/schemas/Subscription"}
+            }
+        },
+        SubscriptionListResponse: {
+            type: "object",
+            properties: {
+                message: {type: "string", example: "Subscriptions retrieved successfully"},
+                status: {type: "integer", example: 200},
+                data: {
+                    type: "object",
+                    properties: {
+                        subscriptions: {
+                            type: "array",
+                            items: {$ref: "#/components/schemas/Subscription"},
+                        },
+                        pagination: {
+                            type: "object",
+                            properties: {
+                                total: {type: "integer"},
+                                page: {type: "integer"},
+                                limit: {type: "integer"},
+                                totalPages: {type: "integer"},
+                            },
+                        },
+                    },
+                },
+            },
+        },
         ErrorResponse: {
             type: "object",
             properties: {
@@ -529,6 +614,118 @@ const paths = {
             }
         }
     },
+    // --- Subscription Endpoints ---
+    "/subscriptions": {
+        get: {
+            tags: ["Subscriptions"],
+            summary: "List subscriptions with filtering",
+            parameters: [
+                {name: "userId", in: "query", schema: {type: "string", format: "uuid"}},
+                {
+                    name: "alertType",
+                    in: "query",
+                    schema: {type: "string"},
+                    description: "Filter by specific alert type presence"
+                },
+                {name: "page", in: "query", schema: {type: "integer", default: 1}},
+                {name: "limit", in: "query", schema: {type: "integer", default: 10}},
+                {name: "sortBy", in: "query", schema: {type: "string", default: "createdAt"}},
+                {name: "sortOrder", in: "query", schema: {type: "string", enum: ["ASC", "DESC"], default: "DESC"}},
+            ],
+            responses: {
+                200: {
+                    description: "List of subscriptions",
+                    content: {"application/json": {schema: {$ref: "#/components/schemas/SubscriptionListResponse"}}},
+                },
+            },
+        },
+        post: {
+            tags: ["Subscriptions"],
+            summary: "Create a subscription",
+            requestBody: {
+                required: true,
+                content: {"application/json": {schema: {$ref: "#/components/schemas/SubscriptionInput"}}},
+            },
+            responses: {
+                201: {
+                    description: "Subscription created",
+                    content: {"application/json": {schema: {$ref: "#/components/schemas/SubscriptionResponse"}}},
+                },
+                400: {
+                    description: "Validation error (invalid user or types)",
+                    content: {"application/json": {schema: {$ref: "#/components/schemas/ErrorResponse"}}},
+                },
+                409: {
+                    description: "Subscription already exists for user",
+                    content: {"application/json": {schema: {$ref: "#/components/schemas/ErrorResponse"}}},
+                },
+            },
+        },
+    },
+    "/subscriptions/{id}": {
+        parameters: [
+            {name: "id", in: "path", required: true, schema: {type: "string", format: "uuid"}},
+        ],
+        get: {
+            tags: ["Subscriptions"],
+            summary: "Get subscription by ID",
+            responses: {
+                200: {
+                    description: "Subscription details",
+                    content: {"application/json": {schema: {$ref: "#/components/schemas/SubscriptionResponse"}}},
+                },
+                404: {
+                    description: "Subscription not found",
+                    content: {"application/json": {schema: {$ref: "#/components/schemas/ErrorResponse"}}},
+                },
+            },
+        },
+        put: {
+            tags: ["Subscriptions"],
+            summary: "Update subscription",
+            requestBody: {
+                required: true,
+                content: {"application/json": {schema: {$ref: "#/components/schemas/SubscriptionUpdateInput"}}},
+            },
+            responses: {
+                200: {
+                    description: "Subscription updated",
+                    content: {"application/json": {schema: {$ref: "#/components/schemas/SubscriptionResponse"}}},
+                },
+                400: {description: "Invalid types"},
+                404: {description: "Subscription not found"},
+            },
+        },
+        delete: {
+            tags: ["Subscriptions"],
+            summary: "Delete subscription",
+            description: "Deletes subscription and the corresponding service configuration.",
+            responses: {
+                200: {
+                    description: "Subscription deleted",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    message: {type: "string", example: "Subscription deleted successfully"},
+                                    data: {
+                                        type: "object",
+                                        properties: {
+                                            deleted: {type: "boolean", example: true},
+                                            subscriptionId: {type: "string", format: "uuid"},
+                                            userId: {type: "string", format: "uuid"}
+                                        }
+                                    }
+                                },
+                            },
+                        },
+                    },
+                },
+                404: {description: "Subscription not found"},
+            },
+        },
+    },
 };
 
 module.exports = {
@@ -547,6 +744,7 @@ module.exports = {
         {name: "Auth", description: "Authentication and user management"},
         {name: "System", description: "Service utilities"},
         {name: "Cars", description: "Car management and inventory"},
+        {name: "Subscriptions", description: "Subscription plan management"},
         {name: "Service Configuration", description: "Notification and alert settings"},
     ],
     components,
