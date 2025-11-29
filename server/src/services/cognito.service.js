@@ -1,6 +1,5 @@
 "use strict";
 
-// Gọn nhẹ: chỉ giữ các thao tác thực dùng cho app
 const {
   CognitoIdentityProviderClient,
   SignUpCommand,
@@ -16,6 +15,16 @@ const {
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
 const crypto = require("crypto");
 
+const ALLOWED_ROLES = ["user", "admin", "staff"];
+
+const buildConfigError = (message) => {
+  const error = new Error(message);
+  error.name = "InvalidConfiguration";
+  error.statusCode = 500;
+  error.status = 500;
+  return error;
+};
+
 class CognitoService {
   constructor() {
     this.client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
@@ -23,54 +32,55 @@ class CognitoService {
     const rawClientId = process.env.AWS_COGNITO_CLIENT_ID;
     this.clientId = typeof rawClientId === "string" ? rawClientId.trim() || undefined : rawClientId;
     this.clientSecret = process.env.AWS_COGNITO_CLIENT_SECRET;
-
-    this.availableGroups = ["user", "admin", "staff"];
+    this.availableGroups = ALLOWED_ROLES;
     this.tokenVerifiers = this.initializeTokenVerifiers();
+  }
+
+  ensureClientConfigured() {
+    if (!this.userPoolId) {
+      throw buildConfigError("Cognito userPoolId is not configured");
+    }
+    if (!this.clientId) {
+      throw buildConfigError("Cognito ClientId is not configured");
+    }
+  }
+
+  ensureValidRole(role) {
+    const normalized = typeof role === "string" ? role.toLowerCase().trim() : role;
+    if (!this.availableGroups.includes(normalized)) {
+      throw new Error(`Invalid role. Must be one of: ${this.availableGroups.join(", ")}`);
+    }
+    return normalized;
   }
 
   generateSecretHash(username) {
     if (!this.clientSecret) return undefined;
-
-    return crypto
-      .createHmac("SHA256", this.clientSecret)
-      .update(username + this.clientId)
-      .digest("base64");
+    return crypto.createHmac("SHA256", this.clientSecret).update(username + this.clientId).digest("base64");
   }
 
   initializeTokenVerifiers() {
-    if (!this.userPoolId) {
-      return null;
-    }
-
-    const verifiers = {};
+    if (!this.userPoolId) return null;
 
     const verifierClientId = typeof this.clientId === "string" ? this.clientId.trim() : this.clientId;
-
-    if (verifierClientId) {
-      verifiers.id = CognitoJwtVerifier.create({
+    return {
+      id: verifierClientId
+        ? CognitoJwtVerifier.create({
+            userPoolId: this.userPoolId,
+            tokenUse: "id",
+            clientId: verifierClientId,
+          })
+        : null,
+      access: CognitoJwtVerifier.create({
         userPoolId: this.userPoolId,
-        tokenUse: "id",
-        clientId: verifierClientId,
-      });
-    }
-
-    verifiers.access = CognitoJwtVerifier.create({
-      userPoolId: this.userPoolId,
-      tokenUse: "access",
-      clientId: null,
-    });
-
-    return verifiers;
+        tokenUse: "access",
+        clientId: null,
+      }),
+    };
   }
 
   async decodeToken(token) {
-    if (!token) {
-      throw new Error("Authorization token is required");
-    }
-
-    if (!this.tokenVerifiers) {
-      throw new Error("Cognito token verifiers are not configured");
-    }
+    if (!token) throw new Error("Authorization token is required");
+    if (!this.tokenVerifiers) throw new Error("Cognito token verifiers are not configured");
 
     const attempts = [
       { use: "id", verifier: this.tokenVerifiers.id },
@@ -81,7 +91,6 @@ class CognitoService {
 
     for (const attempt of attempts) {
       if (!attempt.verifier) continue;
-
       try {
         const payload = await attempt.verifier.verify(token);
         return { payload, tokenUse: attempt.use };
@@ -96,46 +105,29 @@ class CognitoService {
   }
 
   async signUp({ username, password, email, role = "user" }) {
-    if (!this.clientId) {
-      const e = new Error("Cognito ClientId is not configured");
-      e.name = "InvalidConfiguration";
-      e.statusCode = 500;
-      e.status = 500;
-      throw e;
-    }
-    if (!this.availableGroups.includes(role)) {
-      throw new Error(
-        `Invalid role. Must be one of: ${this.availableGroups.join(", ")}`
-      );
-    }
+    this.ensureClientConfigured();
+    const normalizedRole = this.ensureValidRole(role);
 
     const params = {
       ClientId: this.clientId,
       Username: username,
       Password: password,
-      UserAttributes: [
-        {
-          Name: "email",
-          Value: email,
-        },
-      ],
+      UserAttributes: [{ Name: "email", Value: email }],
     };
 
     const secretHash = this.generateSecretHash(username);
-    if (secretHash) {
-      params.SecretHash = secretHash;
-    }
+    if (secretHash) params.SecretHash = secretHash;
 
     try {
       const command = new SignUpCommand(params);
       const response = await this.client.send(command);
-      await this.addUserToGroup(username, role);
+      await this.addUserToGroup(username, normalizedRole);
 
       return {
         userSub: response.UserSub,
-        username: username,
-        email: email,
-        role: role,
+        username,
+        email,
+        role: normalizedRole,
         userConfirmed: response.UserConfirmed,
         message: "User registered successfully. Please verify your email.",
       };
@@ -151,7 +143,6 @@ class CognitoService {
         Username: username,
         GroupName: groupName,
       });
-
       await this.client.send(command);
       return { message: `User added to group: ${groupName}` };
     } catch (error) {
@@ -166,7 +157,6 @@ class CognitoService {
         Username: username,
         GroupName: groupName,
       });
-
       await this.client.send(command);
       return { message: `User removed from group: ${groupName}` };
     } catch (error) {
@@ -180,7 +170,6 @@ class CognitoService {
         UserPoolId: this.userPoolId,
         Username: username,
       });
-
       const response = await this.client.send(command);
       return response.Groups || [];
     } catch (error) {
@@ -194,7 +183,6 @@ class CognitoService {
         UserPoolId: this.userPoolId,
         Username: username,
       });
-
       await this.client.send(command);
       return { message: "User confirmed successfully" };
     } catch (error) {
@@ -203,13 +191,8 @@ class CognitoService {
   }
 
   async login({ username, password }) {
-    if (!this.clientId) {
-      const e = new Error("Cognito ClientId is not configured");
-      e.name = "InvalidConfiguration";
-      e.statusCode = 500;
-      e.status = 500;
-      throw e;
-    }
+    this.ensureClientConfigured();
+
     const params = {
       AuthFlow: "USER_PASSWORD_AUTH",
       ClientId: this.clientId,
@@ -220,15 +203,13 @@ class CognitoService {
     };
 
     const secretHash = this.generateSecretHash(username);
-    if (secretHash) {
-      params.AuthParameters.SECRET_HASH = secretHash;
-    }
+    if (secretHash) params.AuthParameters.SECRET_HASH = secretHash;
 
     try {
       const command = new InitiateAuthCommand(params);
       const response = await this.client.send(command);
-
       if (!response.AuthenticationResult) throw new Error("Authentication failed");
+
       const userDetails = await this.getUserDetails(username);
 
       return {
@@ -238,7 +219,7 @@ class CognitoService {
         expiresIn: response.AuthenticationResult.ExpiresIn,
         tokenType: response.AuthenticationResult.TokenType,
         user: {
-          username: username,
+          username,
           email: userDetails.email,
           groups: userDetails.groups,
           role: userDetails.primaryRole,
@@ -256,7 +237,6 @@ class CognitoService {
         UserPoolId: this.userPoolId,
         Username: username,
       });
-
       const userResponse = await this.client.send(userCommand);
       const groups = await this.getUserGroups(username);
 
@@ -265,14 +245,14 @@ class CognitoService {
         return acc;
       }, {});
 
-      let primaryRole = "user";
-      if (groups.length > 0) primaryRole = groups.sort((a, b) => a.Precedence - b.Precedence)[0].GroupName;
+      const primaryRole =
+        groups.length > 0 ? groups.sort((a, b) => a.Precedence - b.Precedence)[0].GroupName : "user";
 
       return {
         username: userResponse.Username,
         email: attributes.email,
         groups: groups.map((g) => g.GroupName),
-        primaryRole: primaryRole,
+        primaryRole,
         emailVerified: attributes.email_verified === "true",
         userStatus: userResponse.UserStatus,
       };
@@ -282,21 +262,19 @@ class CognitoService {
   }
 
   async updateUserRole(username, newRole) {
-    if (!this.availableGroups.includes(newRole)) {
-      throw new Error(
-        `Invalid role. Must be one of: ${this.availableGroups.join(", ")}`
-      );
-    }
+    const normalizedRole = this.ensureValidRole(newRole);
 
     try {
       const currentGroups = await this.getUserGroups(username);
-      for (const group of currentGroups) await this.removeUserFromGroup(username, group.GroupName);
-      await this.addUserToGroup(username, newRole);
+      for (const group of currentGroups) {
+        await this.removeUserFromGroup(username, group.GroupName);
+      }
+      await this.addUserToGroup(username, normalizedRole);
 
       return {
         message: "User role updated successfully",
-        username: username,
-        newRole: newRole,
+        username,
+        newRole: normalizedRole,
         previousGroups: currentGroups.map((g) => g.GroupName),
       };
     } catch (error) {
@@ -323,22 +301,14 @@ class CognitoService {
     const customError = new Error(message);
     customError.name = error.name;
     customError.statusCode = error.$metadata?.httpStatusCode || 400;
-    // Align with global error handler which reads `error.status`
     customError.status = customError.statusCode;
-    // Preserve raw provider message for diagnostics
     customError.details = error.message;
 
     return customError;
   }
 
   async confirmSignUp({ username, code }) {
-    if (!this.clientId) {
-      const e = new Error("Cognito ClientId is not configured");
-      e.name = "InvalidConfiguration";
-      e.statusCode = 500;
-      e.status = 500;
-      throw e;
-    }
+    this.ensureClientConfigured();
 
     const params = {
       ClientId: this.clientId,
@@ -359,13 +329,7 @@ class CognitoService {
   }
 
   async resendConfirmationCode({ username }) {
-    if (!this.clientId) {
-      const e = new Error("Cognito ClientId is not configured");
-      e.name = "InvalidConfiguration";
-      e.statusCode = 500;
-      e.status = 500;
-      throw e;
-    }
+    this.ensureClientConfigured();
 
     const params = {
       ClientId: this.clientId,

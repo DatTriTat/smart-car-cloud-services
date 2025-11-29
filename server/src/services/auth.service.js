@@ -9,6 +9,8 @@ const {
   ConflictRequestError,
 } = require("../core/error.response");
 
+const VALID_ROLES = ["user", "admin", "staff"];
+
 class AuthService {
   // Register a new user
   async signup({ username, password, email, role = "user" }) {
@@ -19,10 +21,9 @@ class AuthService {
       }
 
       // Validate role
-      const validRoles = ["user", "admin", "staff"];
-      if (!validRoles.includes(role)) {
+      if (!VALID_ROLES.includes(role)) {
         throw new BadRequestError(
-          `Invalid role. Must be one of: ${validRoles.join(", ")}`
+          `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}`
         );
       }
 
@@ -118,15 +119,7 @@ class AuthService {
           expiresIn: cognitoResult.expiresIn,
           tokenType: cognitoResult.tokenType,
         },
-        user: {
-          id: localUser.id,
-          username: localUser.username,
-          email: localUser.email,
-          role: cognitoResult.user.role,
-          groups: cognitoResult.user.groups,
-          emailVerified: cognitoResult.user.emailVerified,
-          lastLogin: localUser.lastLogin,
-        },
+        user: { localUser },
       };
     } catch (error) {
       if (error.name === "NotAuthorizedException") {
@@ -168,10 +161,16 @@ class AuthService {
 
       let result;
       try {
-        result = await CognitoService.confirmSignUp({ username: primary, code });
+        result = await CognitoService.confirmSignUp({
+          username: primary,
+          code,
+        });
       } catch (err) {
         if (alternate) {
-          result = await CognitoService.confirmSignUp({ username: alternate, code });
+          result = await CognitoService.confirmSignUp({
+            username: alternate,
+            code,
+          });
         } else {
           throw err;
         }
@@ -218,10 +217,14 @@ class AuthService {
 
       let result;
       try {
-        result = await CognitoService.resendConfirmationCode({ username: primary });
+        result = await CognitoService.resendConfirmationCode({
+          username: primary,
+        });
       } catch (err) {
         if (alternate) {
-          result = await CognitoService.resendConfirmationCode({ username: alternate });
+          result = await CognitoService.resendConfirmationCode({
+            username: alternate,
+          });
         } else {
           throw err;
         }
@@ -252,7 +255,6 @@ class AuthService {
       const cognitoPromise = CognitoService.getUserDetails(cognitoKey);
 
       let localUser = await User.findByUsername(username);
-      console.log("localUser:", localUser);
       if (!localUser && lookup.sub) {
         localUser = await User.findByCognitoSub(lookup.sub);
       }
@@ -281,10 +283,9 @@ class AuthService {
   async updateUserRole(username, newRole) {
     try {
       // Validate role
-      const validRoles = ["user", "admin", "staff"];
-      if (!validRoles.includes(newRole)) {
+      if (!VALID_ROLES.includes(newRole)) {
         throw new BadRequestError(
-          `Invalid role. Must be one of: ${validRoles.join(", ")}`
+          `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}`
         );
       }
 
@@ -332,11 +333,17 @@ class AuthService {
         where.isActive = isActive;
       }
 
-      const offset = (page - 1) * limit;
+      const safeLimit =
+        Number.isInteger(Number(limit)) && Number(limit) > 0
+          ? Number(limit)
+          : 10;
+      const safePage =
+        Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+      const offset = (safePage - 1) * safeLimit;
 
       const { count, rows } = await User.findAndCountAll({
         where,
-        limit,
+        limit: safeLimit,
         offset,
         order: [["createdAt", "DESC"]],
         attributes: { exclude: [] },
@@ -346,9 +353,9 @@ class AuthService {
         users: rows,
         pagination: {
           total: count,
-          page,
-          limit,
-          totalPages: Math.ceil(count / limit),
+          page: safePage,
+          limit: safeLimit,
+          totalPages: Math.ceil(count / safeLimit),
         },
       };
     } catch (error) {

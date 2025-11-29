@@ -10,5 +10,6 @@ router.use("/sse", require("./sse"));
 router.use("/cars", require("./car"));
 router.use("/service-configurations", require("./serviceConfig"));
 router.use("/subscriptions", require("./subscription"));
+router.use("/ml", require("./ml"));
 
 module.exports = router;
