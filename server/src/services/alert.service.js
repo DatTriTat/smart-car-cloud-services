@@ -29,10 +29,7 @@ class AlertService {
 
     isValidStatus(status) {
         const normalized = this.normalizeStatus(status);
-        if (!this.VALID_STATUSES.has(normalized)) {
-            return false;
-        }
-        return true;
+        return this.VALID_STATUSES.has(normalized);
     }
 
 
@@ -156,7 +153,7 @@ class AlertService {
 
     arrayToObject(arr, keyField, valueField) {
         return arr.reduce((acc, item) => {
-            acc[item[keyField]] = parseInt(item[valueField]);
+            acc[item[keyField]] = Number(item[valueField]);
             return acc;
         }, {});
     }
@@ -329,6 +326,10 @@ class AlertService {
             } = filters;
 
             const where = {};
+            const safeLimit = Number.isInteger(Number(limit)) && Number(limit) > 0 ? Number(limit) : 20;
+            const safePage = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+            const offset = (safePage - 1) * safeLimit;
+            const orderDirection = (sortOrder || "DESC").toUpperCase() === "ASC" ? "ASC" : "DESC";
 
             // Build query conditions
             if (carId) {
@@ -371,13 +372,11 @@ class AlertService {
                 if (endDate) where.createdAt[Op.lte] = new Date(endDate);
             }
 
-            const offset = (page - 1) * limit;
-
             const {count, rows} = await Alert.findAndCountAll({
                 where,
-                limit: parseInt(limit),
+                limit: safeLimit,
                 offset,
-                order: [[sortBy, sortOrder]],
+                order: [[sortBy, orderDirection]],
                 include: [
                     {
                         model: Car,
@@ -396,9 +395,9 @@ class AlertService {
                 alerts: rows,
                 pagination: {
                     total: count,
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    totalPages: Math.ceil(count / limit),
+                    page: safePage,
+                    limit: safeLimit,
+                    totalPages: Math.ceil(count / safeLimit),
                 },
             };
         } catch (error) {
@@ -544,14 +543,14 @@ class AlertService {
             const previousStatus = alert.status;
 
             // Update alert
-            if (status === ALERT_STATUS.ACKNOWLEDGED) {
+            if (normalizedStatus === ALERT_STATUS.ACKNOWLEDGED) {
                 await alert.acknowledge(userId);
             } else {
-                await alert.updateStatus(status);
+                await alert.updateStatus(normalizedStatus);
             }
 
             let action;
-            switch (status) {
+            switch (normalizedStatus) {
                 case ALERT_STATUS.ACKNOWLEDGED:
                     action = ALERT_ACTIONS.ACKNOWLEDGED;
                     break;
@@ -568,16 +567,16 @@ class AlertService {
             await this.logAlertAction(alertId, userId, alert.alertType, action, {
                 comment,
                 previousStatus,
-                newStatus: status,
+                newStatus: normalizedStatus,
             });
 
             logger.info(
-                `Alert ${alertId} acknowledged by ${userId || "system"}`
+                `Alert ${alertId} status changed to ${normalizedStatus} by ${userId || "system"}`
             );
 
             return await this.getAlertById(alertId);
         } catch (error) {
-            logger.error(`Error acknowledging alert ${alertId}:`, error);
+            logger.error(`Error updating status for alert ${alertId}:`, error);
             throw error;
         }
     }

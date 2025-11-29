@@ -6,5 +6,6 @@ router.use("/auth", require("./auth"));
 router.use("/alert-types", require("./alertType"));
 router.use("/alert-thresholds", require("./alertThreshold"));
 router.use("/alerts", require("./alert"));
+router.use("/ml", require("./ml"));
 
 module.exports = router;
