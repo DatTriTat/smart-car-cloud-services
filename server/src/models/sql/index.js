@@ -156,6 +156,7 @@ AlertThreshold.belongsTo(AlertType, {
     onUpdate: "CASCADE",
 });
 
+
 module.exports = {
     User,
     Car,
@@ -168,4 +169,5 @@ module.exports = {
     NotificationType,
     Subscription,
     ServiceConfiguration,
+    // PushSubscription,
 };

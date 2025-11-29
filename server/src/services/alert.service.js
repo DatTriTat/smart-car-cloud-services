@@ -9,6 +9,7 @@ const Car = require("../models/sql/car.model");
 const User = require("../models/sql/user.model");
 const AlertNotification = require("../models/mongo/alertNotification.model");
 const {AudioEvent} = require("../models/mongo");
+const NotificationService = require("./notification.service");
 const {
     ALERT_STATUS,
     ALERT_ACTIONS,
@@ -255,7 +256,10 @@ class AlertService {
             );
 
             // 7. Send alert data to notification service
-            logger.info("Sending alert to notification service");
+            NotificationService.sendNotification({
+                alert,
+                userId: car.userId
+            }).catch(err => logger.error(err));
 
             // 8. Return alert with associations
             return await Alert.findByPk(alert.id, {
