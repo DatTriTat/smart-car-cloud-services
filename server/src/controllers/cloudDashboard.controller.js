@@ -17,7 +17,10 @@ class CloudDashboardController {
         });
         const alerts = alertsResult?.alerts || [];
 
-        const alertTypes = await AlertType.findAll({raw: true});
+        const alertTypes = await AlertType.findAll({
+            raw: true,
+            attributes: ["type"],
+        });
 
         return new OK({
             message: "Cloud overview fetched",

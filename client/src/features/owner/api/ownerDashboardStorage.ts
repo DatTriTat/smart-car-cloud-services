@@ -23,7 +23,7 @@ function getAuthHeader() {
     const token = parsed.tokens?.accessToken;
     if (!token) return {};
     const type = parsed.tokens?.tokenType || "Bearer";
-    return { Authorization: `${type} ${token}` };
+    return { Authorization: `${type} ${token}` } as Record<string, string>;
   } catch {
     return {};
   }
@@ -34,15 +34,14 @@ function getAuthHeader() {
  */
 export async function saveOwnerDashboard(data: OwnerDashboardData) {
   const baseUrl = getApiBaseUrl();
+  const authHeader = getAuthHeader();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getAuthHeader(),
+    ...(authHeader as Record<string, string>),
   };
 
-  const ownerId = data.owner?.id || "me";
-
   try {
-    await fetch(`${baseUrl}/owner/dashboard/${ownerId}`, {
+    await fetch(`${baseUrl}/owner/dashboard`, {
       method: "PUT",
       headers,
       body: JSON.stringify(data),

@@ -53,6 +53,7 @@ export interface Alert {
   carId: string;
   deviceId?: string;
   type: string;
+  alertType?: string; // backend may return alertType instead of type
   severity: AlertSeverity;
   status: AlertStatus;
   message: string;

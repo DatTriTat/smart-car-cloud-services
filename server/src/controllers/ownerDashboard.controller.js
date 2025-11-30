@@ -71,7 +71,10 @@ class OwnerDashboardController {
             serviceConfig = null;
         }
 
-        const alertTypes = await AlertType.findAll({raw: true});
+        const alertTypes = await AlertType.findAll({
+            raw: true,
+            attributes: ["type"],
+        });
         const carLocations = await getLatestLocations(carIds);
 
         return new OK({

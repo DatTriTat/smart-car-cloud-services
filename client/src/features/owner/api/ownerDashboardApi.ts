@@ -97,9 +97,13 @@ export async function fetchOwnerDashboard(
     ...getAuthHeader(),
   };
 
-  // Backend currently has no /owner/dashboard endpoint; try and fall back to empty state
   try {
-    const res = await fetch(`${baseUrl}/owner/dashboard/${ownerId}`, {
+    const url = new URL(`${baseUrl}/owner/dashboard`);
+    if (ownerId) {
+      url.searchParams.set("userId", ownerId);
+    }
+
+    const res = await fetch(url.toString(), {
       method: "GET",
       headers,
     });
@@ -115,6 +119,7 @@ export async function fetchOwnerDashboard(
     const payload =
       (body?.data as Partial<OwnerDashboardData> | undefined) || body;
 
+    console.log("[ownerDashboard] fetched payload", payload);
     return normalizeOwnerDashboard(payload);
   } catch (err) {
     console.warn(
