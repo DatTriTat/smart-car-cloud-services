@@ -37,6 +37,7 @@ import {
   updateDevice,
   deleteDevice,
 } from "../api/iotDashboardMutations";
+import type { IotDashboardData } from "../api/iotDashboardApi";
 
 export function IoTCarDevicesPage() {
   const queryClient = useQueryClient();
@@ -60,7 +61,7 @@ export function IoTCarDevicesPage() {
   async function handleAddDevice(deviceWithoutId: Omit<IoTDevice, "id">) {
     try {
       const created = await createIotDevice(deviceWithoutId);
-      queryClient.setQueryData(["iotDashboard"], (oldData: any) =>
+      queryClient.setQueryData<IotDashboardData | undefined>(["iotDashboard"], (oldData) =>
         oldData ? addDevice(oldData, created) : oldData
       );
     } catch (err) {
@@ -71,7 +72,7 @@ export function IoTCarDevicesPage() {
   async function handleSaveEditedDevice(update: IoTDevice) {
     try {
       const updated = await updateIotDevice(update.id, update);
-      queryClient.setQueryData(["iotDashboard"], (oldData: any) =>
+      queryClient.setQueryData<IotDashboardData | undefined>(["iotDashboard"], (oldData) =>
         oldData ? updateDevice(oldData, updated) : oldData
       );
     } catch (err) {
@@ -82,7 +83,7 @@ export function IoTCarDevicesPage() {
   async function handleDeleteDevice(deviceId: string) {
     try {
       const deletedId = await deleteIotDevice(deviceId);
-      queryClient.setQueryData(["iotDashboard"], (oldData: any) =>
+      queryClient.setQueryData<IotDashboardData | undefined>(["iotDashboard"], (oldData) =>
         oldData ? deleteDevice(oldData, deletedId) : oldData
       );
     } catch (err) {
