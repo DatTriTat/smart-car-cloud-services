@@ -18,9 +18,11 @@ import {
 } from "@/components/ui/table";
 import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
 import { capitalize } from "@/utils";
+import { useAuth } from "@/auth/AuthContext";
 
 export function CloudAlertsPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const [severityFilter, setSeverityFilter] =
     useState<AlertSeverityFilter>("ALL");
@@ -47,7 +49,7 @@ export function CloudAlertsPage() {
           : "";
 
         return (
-          alert.message.toLowerCase().includes(term) ||
+          alert.description.toLowerCase().includes(term) ||
           alert.type.toLowerCase().includes(term) ||
           carText.includes(term)
         );
@@ -189,7 +191,7 @@ export function CloudAlertsPage() {
                           {capitalize(alert.type)}
                         </TableCell>
                         <TableCell className="text-slate-700">
-                          {alert.message}
+                          {alert.description}
                         </TableCell>
                         <TableCell className="text-right">
                           <AlertSeverityBadge severity={alert.severity} />

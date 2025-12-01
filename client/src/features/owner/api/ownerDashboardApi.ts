@@ -139,7 +139,6 @@ export async function fetchOwnerDashboard(
   const raw =
     typeof window !== "undefined" ? localStorage.getItem("authUser") : null;
   const token = raw ? (JSON.parse(raw) as any)?.tokens?.accessToken : null;
-
   try {
     const res = await fetch(
       `${baseUrl}/owner/dashboard${ownerId ? `?userId=${ownerId}` : ""}`,

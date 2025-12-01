@@ -21,9 +21,11 @@ import { AddModelDialog } from "../components/AddModelDialog";
 import { EditModelDialog } from "../components/EditModelDialog";
 import { DeleteModelDialog } from "../components/DeleteModelDialog";
 import { Link } from "react-router";
+import { useAuth } from "@/auth/AuthContext";
 
 export function CloudModelsPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const queryClient = useQueryClient();
 

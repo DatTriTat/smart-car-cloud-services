@@ -118,7 +118,9 @@ export function OwnerDashboardPage() {
           const alertTypeText = (alert.type || alert.alertType || "")
             .toString()
             .toLowerCase();
-          const haystack = `${alertTypeText} ${alert.message}`.toLowerCase();
+          const haystack = `${alertTypeText} ${
+            alert.description || ""
+          }`.toLowerCase();
           return severityOk && haystack.includes(query);
         });
 

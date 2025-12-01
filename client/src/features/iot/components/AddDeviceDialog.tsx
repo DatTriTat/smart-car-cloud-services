@@ -52,6 +52,7 @@ export function AddDeviceDialog({
       deviceName: deviceName.trim(),
       deviceType,
       status,
+      createdAt: new Date().toISOString(),
     });
 
     onClose();
@@ -76,14 +77,14 @@ export function AddDeviceDialog({
             </Field>
 
             <Field>
-              <FieldLabel>Device type</FieldLabel>
-              <Select
-                value={deviceType}
-                onValueChange={(value) => setDeviceType(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Device Type" />
-                </SelectTrigger>
+            <FieldLabel>Device type</FieldLabel>
+            <Select
+              value={deviceType}
+              onValueChange={(value) => setDeviceType(value as DeviceType)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Device Type" />
+              </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Device Type</SelectLabel>

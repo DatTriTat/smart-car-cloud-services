@@ -50,20 +50,23 @@ class OwnerDashboardController {
         raw: true,
       }));
 
-    const carsResult = await CarService.getCars({ userId, limit: 1000 });
+    const carsResult = await CarService.getCars({
+      userId,
+    });
     const cars = toPlain(carsResult?.cars);
     const carIds = cars.map((c) => c.id);
 
-    const alertsResult = await AlertService.getAlerts({ userId, limit: 1000 });
-    const alerts =
-      toPlain(alertsResult?.alerts).map((a) => ({
-        ...a,
-        severity: mapSeverityToThreeLevels(a.severity),
-        status: mapAlertStatus(a.status),
-      }));
+    const alertsResult = await AlertService.getAlerts({
+      userId,
+    });
+    const alerts = toPlain(alertsResult?.alerts).map((a) => ({
+      ...a,
+      severity: mapSeverityToThreeLevels(a.severity),
+      status: mapAlertStatus(a.status),
+    }));
 
     const devices = await IoTDevice.findAll({
-      where: userId ? { userId } : undefined,
+      where: scopedUserId ? { userId: scopedUserId } : undefined,
       raw: true,
     });
     const plainDevices = devices.map((d) => ({
@@ -126,9 +129,8 @@ class OwnerDashboardController {
 
     try {
       const existing =
-        (
-          await SubscriptionService.getSubscriptions({ userId, limit: 1 })
-        )?.subscriptions?.[0] || null;
+        (await SubscriptionService.getSubscriptions({ userId, limit: 1 }))
+          ?.subscriptions?.[0] || null;
       const updates = {
         planId: subPayload.planId,
         planName: subPayload.planName,
