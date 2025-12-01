@@ -1,6 +1,6 @@
 import type { OwnerDashboardData, OwnerSubscription } from "@/domain/types";
-import { getApiBaseUrl } from "@/lib/apiConfig";
 import { OWNER_PLANS } from "../config/ownerPlans";
+import { authFetch } from "@/lib/authFetch";
 
 function ownerFromAuth(): OwnerDashboardData["owner"] {
   if (typeof window === "undefined") {
@@ -134,21 +134,9 @@ function mapTypesToPreferences(
 export async function fetchOwnerDashboard(
   ownerId: string
 ): Promise<OwnerDashboardData> {
-  const baseUrl = getApiBaseUrl();
-
-  const raw =
-    typeof window !== "undefined" ? localStorage.getItem("authUser") : null;
-  const token = raw ? (JSON.parse(raw) as any)?.tokens?.accessToken : null;
   try {
-    const res = await fetch(
-      `${baseUrl}/owner/dashboard${ownerId ? `?userId=${ownerId}` : ""}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      }
+    const res = await authFetch(
+      `/owner/dashboard${ownerId ? `?userId=${ownerId}` : ""}`
     );
 
     const body = await res.json().catch(() => ({}));

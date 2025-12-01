@@ -66,7 +66,7 @@ class OwnerDashboardController {
     }));
 
     const devices = await IoTDevice.findAll({
-      where: scopedUserId ? { userId: scopedUserId } : undefined,
+      where: userId ? { userId } : undefined,
       raw: true,
     });
     const plainDevices = devices.map((d) => ({

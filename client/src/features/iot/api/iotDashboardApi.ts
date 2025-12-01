@@ -1,5 +1,5 @@
 import type { Alert, Car, IoTDevice } from "@/domain/types";
-import { getApiBaseUrl } from "@/lib/apiConfig";
+import { authFetch } from "@/lib/authFetch";
 
 export interface IotDashboardData {
   cars: Car[];
@@ -8,17 +8,8 @@ export interface IotDashboardData {
 }
 
 export async function fetchIotDashboard(): Promise<IotDashboardData> {
-  const baseUrl = getApiBaseUrl();
-  const raw =
-    typeof window !== "undefined" ? localStorage.getItem("authUser") : null;
-  const token = raw ? (JSON.parse(raw) as any)?.tokens?.accessToken : null;
-
-  const res = await fetch(`${baseUrl}/iot/dashboard`, {
+  const res = await authFetch(`/iot/dashboard`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
   });
 
   const body = await res.json().catch(() => ({}));
