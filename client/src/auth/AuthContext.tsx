@@ -136,14 +136,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const tokensFromApi: AuthTokens | null = payload?.data?.tokens || null;
-    const apiUser = payload?.data?.user || {};
-    const backendRole: string | undefined = apiUser?.role;
+    const rawUser = payload?.data?.user?.localUser ?? null;
+    if (!rawUser?.id || !rawUser?.role) {
+      throw new Error("Invalid user payload from login");
+    }
+
+    const backendRole: string | undefined = rawUser.role;
     const resolvedRole = mapBackendRoleToUserRole(backendRole, input.roleHint);
 
     const authUser: AuthUser = {
-      id: apiUser?.id || apiUser?.username || "user",
-      name: apiUser?.name || apiUser?.username || apiUser?.email || "User",
-      email: apiUser?.email,
+      id: rawUser.id,
+      name: rawUser.name || rawUser.username || "User",
+      email: rawUser.email,
       role: resolvedRole,
       backendRole,
     };

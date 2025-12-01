@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Car } from "@/domain/types";
-import { mockOwnerDashboardData } from "@/mocks/ownerDashboard";
 import { Link, useLocation } from "react-router";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/auth/AuthContext";
@@ -13,11 +12,7 @@ interface OwnerLayoutProps {
 }
 
 export function OwnerLayout({ children, cars, ownerName }: OwnerLayoutProps) {
-  const fallbackCars = mockOwnerDashboardData.cars;
-  const effectiveCars = useMemo(
-    () => (cars && cars.length > 0 ? cars : fallbackCars),
-    [cars]
-  );
+  const effectiveCars: Car[] = cars ?? [];
 
   const [selectedCarId, setSelectedCarId] = useState<string | null>(
     effectiveCars[0]?.id || null
