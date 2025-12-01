@@ -39,7 +39,6 @@ export function OwnerLayout({ children, cars, ownerName }: OwnerLayoutProps) {
   ];
 
   const displayName = user?.name || ownerName || "Owner";
-
   return (
     <div className="min-h-screen flex bg-slate-100">
       {/* Sidebar */}

@@ -1,55 +1,42 @@
 import type { OwnerDashboardData } from "@/domain/types";
 import { getApiBaseUrl } from "@/lib/apiConfig";
 
-type StoredAuthTokens = {
-  accessToken?: string;
-  tokenType?: string;
-};
+function ownerFromAuth(): OwnerDashboardData["owner"] {
+  if (typeof window === "undefined") {
+    return {
+      id: "owner",
+      name: "Owner",
+      email: "",
+      role: "CAR_OWNER",
+      createdAt: "",
+    };
+  }
 
-type StoredAuthUser = {
-  id?: string;
-  username?: string;
-  email?: string;
-  role?: string;
-};
-
-type StoredAuthState = {
-  tokens?: StoredAuthTokens;
-  user?: StoredAuthUser;
-};
-
-function getAuthState(): StoredAuthState | undefined {
-  if (typeof window === "undefined") return undefined;
-  const raw = localStorage.getItem("authUser");
-  if (!raw) return undefined;
   try {
-    return JSON.parse(raw) as StoredAuthState;
+    const raw = localStorage.getItem("authUser");
+    const parsed = raw ? JSON.parse(raw) : null;
+    const user = parsed?.user;
+
+    return {
+      id: user?.id || "owner",
+      name: user?.username || "Owner",
+      email: user?.email || "",
+      role: "CAR_OWNER",
+      createdAt: "",
+    };
   } catch {
-    return undefined;
+    return {
+      id: "owner",
+      name: "Owner",
+      email: "",
+      role: "CAR_OWNER",
+      createdAt: "",
+    };
   }
 }
 
-function getAuthHeader(): Record<string, string> {
-  const authState = getAuthState();
-  const token = authState?.tokens?.accessToken;
-  if (!token) return {};
-  const type = authState?.tokens?.tokenType || "Bearer";
-  return { Authorization: `${type} ${token}` };
-}
-
-function ownerFromAuth(): OwnerDashboardData["owner"] {
-  const auth = getAuthState();
-  return {
-    id: auth?.user?.id || "owner",
-    name: auth?.user?.username || "Owner",
-    email: auth?.user?.email || "",
-    role: "CAR_OWNER",
-    createdAt: "",
-  };
-}
-
 function normalizeOwnerDashboard(
-  data: Partial<OwnerDashboardData> | undefined
+  data: Partial<OwnerDashboardData> = {}
 ): OwnerDashboardData {
   const empty: OwnerDashboardData = {
     owner: ownerFromAuth(),
@@ -88,21 +75,22 @@ export async function fetchOwnerDashboard(
   ownerId: string
 ): Promise<OwnerDashboardData> {
   const baseUrl = getApiBaseUrl();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...getAuthHeader(),
-  };
+
+  const raw =
+    typeof window !== "undefined" ? localStorage.getItem("authUser") : null;
+  const token = raw ? (JSON.parse(raw) as any)?.tokens?.accessToken : null;
 
   try {
-    const url = new URL(`${baseUrl}/owner/dashboard`);
-    if (ownerId) {
-      url.searchParams.set("userId", ownerId);
-    }
-
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers,
-    });
+    const res = await fetch(
+      `${baseUrl}/owner/dashboard${ownerId ? `?userId=${ownerId}` : ""}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }
+    );
 
     const body = await res.json().catch(() => ({}));
 
@@ -112,9 +100,7 @@ export async function fetchOwnerDashboard(
       );
     }
 
-    const payload =
-      (body?.data as Partial<OwnerDashboardData> | undefined) || body;
-
+    const payload = (body?.data ?? {}) as Partial<OwnerDashboardData>;
     console.log("[ownerDashboard] fetched payload", payload);
     return normalizeOwnerDashboard(payload);
   } catch (err) {
@@ -122,6 +108,6 @@ export async function fetchOwnerDashboard(
       "Owner dashboard endpoint unavailable, returning empty data",
       err
     );
-    return normalizeOwnerDashboard(undefined);
+    return normalizeOwnerDashboard({});
   }
 }

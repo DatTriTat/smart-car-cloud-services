@@ -78,7 +78,10 @@ export function OwnerAccountPage() {
   const criticalAlerts = alerts.filter((a) => a.severity === "CRITICAL").length;
 
   return (
-    <OwnerLayout cars={cars} ownerName={owner.name}>
+    <OwnerLayout
+      cars={cars}
+      ownerName={owner?.username || owner?.cognitoUsername}
+    >
       {() => (
         <div className="space-y-6">
           {/* Account info */}

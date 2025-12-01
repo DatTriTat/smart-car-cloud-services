@@ -140,7 +140,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!rawUser?.id || !rawUser?.role) {
       throw new Error("Invalid user payload from login");
     }
-
     const backendRole: string | undefined = rawUser.role;
     const resolvedRole = mapBackendRoleToUserRole(backendRole, input.roleHint);
 
