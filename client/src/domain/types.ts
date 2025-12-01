@@ -58,7 +58,7 @@ export interface Alert {
   alertType?: string; // backend may return alertType instead of type
   severity: AlertSeverity;
   status: AlertStatus;
-  message: string;
+  description?: string; // backend often returns description
   confidenceScore: number;
   createdAt: string;
   acknowledgedAt?: string;

@@ -54,7 +54,7 @@ export function AlertDetailDialog({
 
           <div>
             <p className="text-xs text-slate-500">Message</p>
-            <p>{alert.message}</p>
+            <p>{alert.description}</p>
           </div>
 
           <div>

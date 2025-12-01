@@ -5,12 +5,17 @@ const CarService = require("../services/car.service");
 const AlertService = require("../services/alert.service");
 const SubscriptionService = require("../services/subscription.service");
 const ServiceConfigurationService = require("../services/serviceConfiguration.service");
-const Subscription = require("../models/sql/subscription.model");
 const AlertType = require("../models/sql/alertType.model");
 const IoTDevice = require("../models/sql/iotDevice.model");
 const CarTracking = require("../models/sql/carTracking.model");
 const User = require("../models/sql/user.model");
 const { Op } = require("sequelize");
+const {
+  mapAlertStatus,
+  mapDeviceStatus,
+  mapSeverityToThreeLevels,
+  toPlain,
+} = require("../services/status.helper");
 
 async function getLatestLocations(carIds) {
   if (!carIds.length) return [];
@@ -36,7 +41,7 @@ async function getLatestLocations(carIds) {
 
 class OwnerDashboardController {
   async getDashboard(req, res) {
-    const userId = req.user?.id || req.query.userId;
+    const userId = req.query.userId || req.user?.id;
 
     const owner =
       userId &&
@@ -46,16 +51,25 @@ class OwnerDashboardController {
       }));
 
     const carsResult = await CarService.getCars({ userId, limit: 1000 });
-    const cars = carsResult?.cars || [];
+    const cars = toPlain(carsResult?.cars);
     const carIds = cars.map((c) => c.id);
 
     const alertsResult = await AlertService.getAlerts({ userId, limit: 1000 });
-    const alerts = alertsResult?.alerts || [];
+    const alerts =
+      toPlain(alertsResult?.alerts).map((a) => ({
+        ...a,
+        severity: mapSeverityToThreeLevels(a.severity),
+        status: mapAlertStatus(a.status),
+      }));
 
     const devices = await IoTDevice.findAll({
       where: userId ? { userId } : undefined,
       raw: true,
     });
+    const plainDevices = devices.map((d) => ({
+      ...d,
+      status: mapDeviceStatus(d.status),
+    }));
 
     const subscription =
       (await SubscriptionService.getSubscriptions({ userId, limit: 1 }))
@@ -87,7 +101,7 @@ class OwnerDashboardController {
         owner: owner || null,
         cars,
         alerts,
-        devices,
+        devices: plainDevices,
         carServiceConfigs: serviceConfig ? [serviceConfig] : [],
         subscription: subscription || defaultSubscription,
         carLocations,
@@ -111,11 +125,19 @@ class OwnerDashboardController {
     }
 
     try {
-      const existing = await Subscription.findOne({ where: { userId } });
+      const existing =
+        (
+          await SubscriptionService.getSubscriptions({ userId, limit: 1 })
+        )?.subscriptions?.[0] || null;
       const updates = {
         planId: subPayload.planId,
         planName: subPayload.planName,
         pricePerMonth: subPayload.pricePerMonth,
+        notificationTypes: Array.isArray(subPayload.notificationPreferences)
+          ? subPayload.notificationPreferences
+              .filter((p) => p && p.enabled)
+              .map((p) => String(p.channel).toLowerCase())
+          : undefined,
       };
 
       if (existing) {
@@ -123,9 +145,8 @@ class OwnerDashboardController {
       } else {
         await SubscriptionService.createSubscription({
           userId,
-          notificationTypes: [],
-          alertTypes: [],
           ...updates,
+          alertTypes: [],
         });
       }
     } catch (err) {
