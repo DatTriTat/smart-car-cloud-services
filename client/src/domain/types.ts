@@ -6,7 +6,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  createdAt: string; // ISO timestamp
+  createdAt: string;
   username?: string;
   cognitoUsername?: string;
 }

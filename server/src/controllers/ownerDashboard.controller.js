@@ -5,6 +5,7 @@ const CarService = require("../services/car.service");
 const AlertService = require("../services/alert.service");
 const SubscriptionService = require("../services/subscription.service");
 const ServiceConfigurationService = require("../services/serviceConfiguration.service");
+const Subscription = require("../models/sql/subscription.model");
 const AlertType = require("../models/sql/alertType.model");
 const IoTDevice = require("../models/sql/iotDevice.model");
 const CarTracking = require("../models/sql/carTracking.model");
@@ -40,7 +41,7 @@ class OwnerDashboardController {
     const owner =
       userId &&
       (await User.findByPk(userId, {
-        attributes: ["id", "username", "name", "email", "role"],
+        attributes: ["id", "username", "name", "email", "role", "created_at"],
         raw: true,
       }));
 
@@ -72,7 +73,15 @@ class OwnerDashboardController {
     });
     const carLocations = await getLatestLocations(carIds);
 
-    return new OK({
+    const defaultSubscription = {
+      planId: "BASIC",
+      planName: "Basic",
+      pricePerMonth: 0,
+      renewalDate: "",
+      notificationPreferences: [],
+    };
+
+    const responseData = {
       message: "Owner dashboard fetched",
       data: {
         owner: owner || null,
@@ -80,12 +89,50 @@ class OwnerDashboardController {
         alerts,
         devices,
         carServiceConfigs: serviceConfig ? [serviceConfig] : [],
-        subscription,
+        subscription: subscription || defaultSubscription,
         carLocations,
         aiModels: [],
         alertTypes,
       },
-    }).send(res);
+    };
+
+    return new OK(responseData).send(res);
+  }
+
+  async upsertDashboard(req, res) {
+    const userId = req.body?.owner?.id;
+    const subPayload = req.body?.subscription;
+
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+    if (!subPayload) {
+      return res.status(400).json({ message: "Missing subscription payload" });
+    }
+
+    try {
+      const existing = await Subscription.findOne({ where: { userId } });
+      const updates = {
+        planId: subPayload.planId,
+        planName: subPayload.planName,
+        pricePerMonth: subPayload.pricePerMonth,
+      };
+
+      if (existing) {
+        await SubscriptionService.updateSubscription(existing.id, updates);
+      } else {
+        await SubscriptionService.createSubscription({
+          userId,
+          notificationTypes: [],
+          alertTypes: [],
+          ...updates,
+        });
+      }
+    } catch (err) {
+      return res.status(500).json({ message: "Failed to update subscription" });
+    }
+
+    return this.getDashboard(req, res);
   }
 
   async refreshDashboard(req, res) {

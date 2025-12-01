@@ -22,7 +22,7 @@ function ownerFromAuth(): OwnerDashboardData["owner"] {
       name: user?.username || "Owner",
       email: user?.email || "",
       role: "CAR_OWNER",
-      createdAt: "",
+      createdAt: user?.created_at || "",
     };
   } catch {
     return {
@@ -59,7 +59,7 @@ function normalizeOwnerDashboard(
   return {
     ...empty,
     ...data,
-    owner: { ...empty.owner, ...(data?.owner ?? {}) },
+    owner: ownerFromAuth(),
     cars: data?.cars ?? [],
     alerts: data?.alerts ?? [],
     devices: data?.devices ?? [],

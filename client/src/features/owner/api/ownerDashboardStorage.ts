@@ -10,7 +10,7 @@ export async function saveOwnerDashboard(data: OwnerDashboardData) {
   if (!token) return;
 
   const baseUrl = getApiBaseUrl();
-
+  console.log("Persisting owner dashboard", data);
   try {
     await fetch(`${baseUrl}/owner/dashboard`, {
       method: "PUT",
