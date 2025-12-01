@@ -52,7 +52,7 @@ export function CloudOverviewPage() {
 
   return (
     <CloudLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader>

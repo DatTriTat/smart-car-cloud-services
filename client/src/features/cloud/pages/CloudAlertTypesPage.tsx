@@ -125,23 +125,7 @@ export function CloudAlertTypesPage() {
 
   return (
     <CloudLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold">Alert Types</h1>
-            <p className="text-sm text-slate-500">
-              Configure predefined audio-based alert types used across cars, IoT
-              devices, and AI models.
-            </p>
-          </div>
-          <div className="flex flex-col items-end text-sm text-slate-600">
-            <span className="uppercase tracking-wide text-slate-400">
-              TOTAL TYPES
-            </span>
-            <span className="font-medium">{alertTypes.length}</span>
-          </div>
-        </div>
-
+      <div className="p-6">
         {/* Models table */}
         <Card>
           <CardHeader>

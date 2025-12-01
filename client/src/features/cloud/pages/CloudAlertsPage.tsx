@@ -67,16 +67,10 @@ export function CloudAlertsPage() {
 
   return (
     <CloudLayout>
-      <div className="space-y-6">
+      <div className="p-6">
         {/* Header + stats */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">Alerts</h1>
-            <p className="text-xs text-slate-500">
-              System-wide audio intelligence alerts across all smart cars.
-            </p>
-          </div>
-
+          {/**
           <div className="flex gap-4 text-xs text-slate-600">
             <div className="flex flex-col items-end">
               <span className="uppercase tracking-wide text-[10px] text-slate-400">
@@ -109,6 +103,7 @@ export function CloudAlertsPage() {
               </span>
             </div>
           </div>
+          */}
         </div>
 
         {/* Filters */}
