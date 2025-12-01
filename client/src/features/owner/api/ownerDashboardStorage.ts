@@ -1,27 +1,40 @@
 import type { OwnerDashboardData } from "@/domain/types";
-import { mockOwnerDashboardData } from "@/mocks/ownerDashboard";
+import { getApiBaseUrl } from "@/lib/apiConfig";
 
-const STORAGE_KEY = "ownerDashboardData";
-
-export function loadOwnerDashboard(): OwnerDashboardData {
-  if (typeof window === "undefined") {
-    return mockOwnerDashboardData;
-  }
-
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mockOwnerDashboardData));
-    return mockOwnerDashboardData;
-  }
+function getAuthHeader(): Record<string, string> | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem("authUser");
+  if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as OwnerDashboardData;
+    const parsed = JSON.parse(raw) as {
+      tokens?: { accessToken?: string; tokenType?: string };
+    };
+    const token = parsed.tokens?.accessToken;
+    if (!token) return null;
+    return { Authorization: `Bearer ${token}` };
   } catch {
-    return mockOwnerDashboardData;
+    return null;
   }
 }
 
-export function saveOwnerDashboard(data: OwnerDashboardData) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+export async function saveOwnerDashboard(data: OwnerDashboardData) {
+  const baseUrl = getApiBaseUrl();
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...authHeader,
+  };
+
+  try {
+    await fetch(`${baseUrl}/owner/dashboard`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.warn("Failed to persist owner dashboard", err);
+  }
 }

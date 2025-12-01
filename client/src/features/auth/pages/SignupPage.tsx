@@ -17,14 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-
-const navigatedItems = {
-  OWNER: "/owner/overview",
-  IOT: "/iot/devices",
-  CLOUD: "/cloud/overview",
-};
 
 const roleLabels: Record<UserRole, string> = {
   OWNER: "Smart Car Owner",
@@ -32,51 +26,43 @@ const roleLabels: Record<UserRole, string> = {
   CLOUD: "Cloud Service Staff",
 };
 
-export function LoginPage() {
-  const { user, login } = useAuth();
+export function SignupPage() {
+  const { signup } = useAuth();
   const navigate = useNavigate();
-  const usernameRef = useRef<HTMLInputElement | null>(null);
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("OWNER");
-  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    navigate(navigatedItems[user.role], { replace: true });
-  }, [user, navigate]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setSuccess(null);
     setIsSubmitting(true);
     try {
-      await login({
-        username,
-        password,
-        roleHint: role,
-      });
+      await signup({ username, email, password, roleHint: role });
+      setSuccess("Account created. Check your email for the verification code.");
+      navigate(`/confirm?username=${encodeURIComponent(username)}`);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Unable to sign in right now.";
+        err instanceof Error ? err.message : "Unable to sign up right now.";
       setError(message);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  function handleQuickLogin(nextRole: UserRole) {
-    setRole(nextRole);
-  }
-
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-10 flex items-center justify-center">
       <Card className="w-full max-w-3xl shadow-lg">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl">Sign in</CardTitle>
+          <CardTitle className="text-2xl">Create account</CardTitle>
           <CardDescription>
-            Enter your details to access Smart Car Cloud. Your role will route you to the right workspace.
+            Set up your Smart Car Cloud account and pick the workspace role you
+            need.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -89,8 +75,20 @@ export function LoginPage() {
                 placeholder="your.username"
                 autoComplete="username"
                 value={username}
-                ref={usernameRef}
                 onChange={(event) => setUsername(event.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
                 required
               />
             </div>
@@ -101,6 +99,7 @@ export function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="********"
+                autoComplete="new-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
@@ -123,7 +122,7 @@ export function LoginPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-slate-500">
-                Demo: we route you to the matching workspace for that role.
+                Roles map to backend groups for access control.
               </p>
             </div>
 
@@ -132,45 +131,23 @@ export function LoginPage() {
                 {error}
               </div>
             )}
+            {success && (
+              <div className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">
+                {success}
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              Sign in
+              Create account
             </Button>
-            <p className="text-sm text-slate-600 text-center">
-              Need an account?{" "}
-              <Link to="/signup" className="text-primary hover:underline">
-                Sign up
-              </Link>{" "}
-              or{" "}
-              <Link to="/confirm" className="text-primary hover:underline">
-                confirm your email
-              </Link>
-              .
-            </p>
           </form>
 
           <Separator />
-
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Quick role preset
-            </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {(Object.keys(roleLabels) as Array<UserRole>).map((key) => (
-                <Button
-                  key={key}
-                  type="button"
-                  variant={role === key ? "default" : "outline"}
-                  className="w-full"
-                  onClick={() => handleQuickLogin(key)}
-                >
-                  {roleLabels[key]}
-                </Button>
-              ))}
-            </div>
-            <p className="text-xs text-slate-500">
-              Choose a role here, then hit Sign in to enter that workspace.
-            </p>
+          <div className="text-sm text-slate-600">
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline">
+              Sign in
+            </Link>
           </div>
         </CardContent>
       </Card>

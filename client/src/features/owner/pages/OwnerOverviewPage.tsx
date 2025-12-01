@@ -11,9 +11,11 @@ import {
 import Loading from "@/components/shared/Loading";
 import Error from "@/components/shared/Error";
 import { capitalize, formatDate } from "@/utils";
+import { useAuth } from "@/auth/AuthContext";
 
 export function OwnerOverviewPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "me";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
 
   if (isLoading) return <Loading />;
@@ -54,7 +56,7 @@ export function OwnerOverviewPage() {
   }
 
   return (
-    <OwnerLayout>
+    <OwnerLayout cars={cars} ownerName={data.owner?.name}>
       {() => (
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-4">
@@ -132,8 +134,15 @@ export function OwnerOverviewPage() {
                               Map preview (mock)
                             </div>
                             <div>
-                              Lat: {location.latitude.toFixed(3)}, Lng:{" "}
-                              {location.longitude.toFixed(3)}
+                              {Number.isFinite(Number(location.latitude)) &&
+                              Number.isFinite(Number(location.longitude)) ? (
+                                <>
+                                  Lat: {Number(location.latitude).toFixed(3)}, Lng:{" "}
+                                  {Number(location.longitude).toFixed(3)}
+                                </>
+                              ) : (
+                                <span>Location unavailable</span>
+                              )}
                             </div>
                             <div className="text-slate-500">
                               Last seen: {formatDate(location.lastSeenAt)}
@@ -174,7 +183,9 @@ export function OwnerOverviewPage() {
                             <p>
                               Last alert:{" "}
                               <span className="font-medium">
-                                {capitalize(lastAlert.type)}
+                                {lastAlert.type
+                                  ? capitalize(String(lastAlert.type))
+                                  : "Unknown"}
                               </span>
                             </p>
                           )}

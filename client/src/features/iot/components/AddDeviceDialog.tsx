@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { IoTDevice } from "@/domain/types";
+import type { IoTDevice, DeviceType } from "@/domain/types";
 import { useEffect, useState, type FormEvent } from "react";
 
 interface AddDeviceDialogProps {
@@ -34,7 +34,7 @@ export function AddDeviceDialog({
   onSave,
 }: AddDeviceDialogProps) {
   const [deviceName, setDeviceName] = useState("");
-  const [deviceType, setDeviceType] = useState("AUDIO");
+  const [deviceType, setDeviceType] = useState<DeviceType>("AUDIO");
   const [status, setStatus] = useState<"ONLINE" | "OFFLINE">("ONLINE");
 
   useEffect(() => {
