@@ -1,4 +1,5 @@
 import type { OwnerDashboardData } from "@/domain/types";
+import { getApiBaseUrl } from "@/lib/apiConfig";
 
 type StoredAuthTokens = {
   accessToken?: string;
@@ -16,10 +17,6 @@ type StoredAuthState = {
   tokens?: StoredAuthTokens;
   user?: StoredAuthUser;
 };
-
-function getApiBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-}
 
 function getAuthState(): StoredAuthState | undefined {
   if (typeof window === "undefined") return undefined;
@@ -43,9 +40,8 @@ function getAuthHeader(): Record<string, string> {
 function ownerFromAuth(): OwnerDashboardData["owner"] {
   const auth = getAuthState();
   return {
-    id: auth?.user?.id || auth?.user?.username || auth?.user?.email || "owner",
-    name:
-      auth?.user?.username || auth?.user?.email || auth?.user?.id || "Owner",
+    id: auth?.user?.id || "owner",
+    name: auth?.user?.username || "Owner",
     email: auth?.user?.email || "",
     role: "CAR_OWNER",
     createdAt: "",

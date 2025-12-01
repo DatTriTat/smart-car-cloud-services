@@ -1,43 +1,31 @@
 import type { OwnerDashboardData } from "@/domain/types";
+import { getApiBaseUrl } from "@/lib/apiConfig";
 
-type StoredAuthTokens = {
-  accessToken?: string;
-  tokenType?: string;
-};
-
-type StoredAuthState = {
-  tokens?: StoredAuthTokens;
-};
-
-function getApiBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-}
-
-function getAuthHeader() {
-  if (typeof window === "undefined") return {};
+function getAuthHeader(): Record<string, string> | null {
+  if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("authUser");
-  if (!raw) return {};
+  if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as StoredAuthState;
+    const parsed = JSON.parse(raw) as {
+      tokens?: { accessToken?: string; tokenType?: string };
+    };
     const token = parsed.tokens?.accessToken;
-    if (!token) return {};
-    const type = parsed.tokens?.tokenType || "Bearer";
-    return { Authorization: `${type} ${token}` } as Record<string, string>;
+    if (!token) return null;
+    return { Authorization: `Bearer ${token}` };
   } catch {
-    return {};
+    return null;
   }
 }
 
-/**
- * Persist dashboard changes to backend. No local storage.
- */
 export async function saveOwnerDashboard(data: OwnerDashboardData) {
   const baseUrl = getApiBaseUrl();
   const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(authHeader as Record<string, string>),
+    ...authHeader,
   };
 
   try {

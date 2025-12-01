@@ -5,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { getApiBaseUrl } from "@/lib/apiConfig";
 
 export type UserRole = "OWNER" | "IOT" | "CLOUD";
 
@@ -61,12 +62,35 @@ interface ConfirmInput {
   code: string;
 }
 
+function readStoredAuth(): StoredAuthState | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as StoredAuthState;
+    if (!parsed?.user?.id || !parsed.user.role) {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      return null;
+    }
+    return { user: parsed.user, tokens: parsed.tokens ?? null };
+  } catch {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    return null;
+  }
+}
+
 function mapBackendRoleToUserRole(role?: string | null, fallback?: UserRole) {
-  const normalized = (role || "").toLowerCase();
-  if (normalized === "car_owner") return "OWNER";
-  if (normalized === "iot_team") return "IOT";
-  if (normalized === "cloud_team") return "CLOUD";
-  return fallback || "OWNER";
+  switch ((role || "").toLowerCase()) {
+    case "car_owner":
+      return "OWNER";
+    case "iot_team":
+      return "IOT";
+    case "cloud_team":
+      return "CLOUD";
+    default:
+      return fallback || "OWNER";
+  }
 }
 
 function mapUserRoleToBackend(role?: UserRole | null) {
@@ -76,31 +100,15 @@ function mapUserRoleToBackend(role?: UserRole | null) {
   return undefined;
 }
 
-function getApiBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [tokens, setTokens] = useState<AuthTokens | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw) as StoredAuthState | AuthUser;
-      if ("user" in parsed) {
-        setUser(parsed.user);
-        setTokens(parsed.tokens ?? null);
-      } else {
-        setUser(parsed);
-      }
-    } catch {
-      // ignore bad data
-    }
+    const stored = readStoredAuth();
+    if (!stored) return;
+    setUser(stored.user);
+    setTokens(stored.tokens ?? null);
   }, []);
 
   async function login(input: LoginInput) {
@@ -121,23 +129,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!response.ok) {
       const message =
-        payload?.message || payload?.error || "Unable to sign in. Please try again.";
+        payload?.message ||
+        payload?.error ||
+        "Unable to sign in. Please try again.";
       throw new Error(message);
     }
 
     const tokensFromApi: AuthTokens | null = payload?.data?.tokens || null;
-    const localUser = payload?.data?.user?.localUser || payload?.data?.user || {};
-    const backendRole: string | undefined = localUser?.role;
+    const apiUser = payload?.data?.user || {};
+    const backendRole: string | undefined = apiUser?.role;
     const resolvedRole = mapBackendRoleToUserRole(backendRole, input.roleHint);
 
     const authUser: AuthUser = {
-      id: localUser?.id || localUser?.username || localUser?.email || "user",
-      name:
-        localUser?.name ||
-        localUser?.username ||
-        localUser?.email ||
-        "Smart Car User",
-      email: localUser?.email,
+      id: apiUser?.id || apiUser?.username || "user",
+      name: apiUser?.name || apiUser?.username || apiUser?.email || "User",
+      email: apiUser?.email,
       role: resolvedRole,
       backendRole,
     };
