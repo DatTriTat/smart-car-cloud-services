@@ -1,17 +1,34 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
-import { mockOwnerDashboardData } from "@/mocks/ownerDashboard";
+import { useEffect, useState } from "react";
+import type { Car } from "@/domain/types";
 import { Link, useLocation } from "react-router";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/auth/AuthContext";
 
 interface OwnerLayoutProps {
-  children: (selectedCarId: string) => ReactNode;
+  children: (selectedCarId: string | null) => ReactNode;
+  cars?: Car[];
+  ownerName?: string;
 }
 
-export function OwnerLayout({ children }: OwnerLayoutProps) {
-  const { owner, cars } = mockOwnerDashboardData;
-  const [selectedCarId, setSelectedCarId] = useState(cars[0]?.id);
+export function OwnerLayout({ children, cars, ownerName }: OwnerLayoutProps) {
+  const effectiveCars: Car[] = cars ?? [];
+
+  const [selectedCarId, setSelectedCarId] = useState<string | null>(
+    effectiveCars[0]?.id || null
+  );
+
+  useEffect(() => {
+    if (!effectiveCars.length) {
+      setSelectedCarId(null);
+      return;
+    }
+    const exists = effectiveCars.some((car) => car.id === selectedCarId);
+    if (!exists) {
+      setSelectedCarId(effectiveCars[0].id);
+    }
+  }, [effectiveCars, selectedCarId]);
+
   const location = useLocation();
   const { user, logout } = useAuth();
 
@@ -22,8 +39,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
     { label: "My Cars", path: "/owner/dashboard" },
   ];
 
-  const displayName = user?.name ?? owner.name;
-
+  const displayName = user?.name || ownerName || "Owner";
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -72,7 +88,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
               My Cars
             </h3>
             <div className="space-y-1">
-              {cars.map((car) => (
+              {effectiveCars.map((car) => (
                 <button
                   key={car.id}
                   className={`w-full text-left px-3 py-2 rounded text-sm ${
@@ -85,6 +101,9 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
                   {car.make} {car.model}
                 </button>
               ))}
+              {effectiveCars.length === 0 && (
+                <p className="text-xs text-slate-500">No cars found</p>
+              )}
             </div>
           </div>
         )}

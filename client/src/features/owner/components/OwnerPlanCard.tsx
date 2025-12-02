@@ -12,12 +12,21 @@ import type { OwnerSubscription } from "@/domain/types";
 import { formatDate } from "@/utils";
 
 interface OwnerPlanCardProps {
-  subscription: OwnerSubscription;
+  subscription: OwnerSubscription | null | undefined;
   onUpgrade?: () => void;
 }
 
 export function OwnerPlanCard({ subscription, onUpgrade }: OwnerPlanCardProps) {
-  const { planName, pricePerMonth, renewalDate } = subscription;
+  const hasSub = Boolean(subscription);
+  const planName = hasSub ? subscription!.planName : "Unknown plan";
+  const priceNumber = hasSub ? Number(subscription!.pricePerMonth) : NaN;
+  const priceText = Number.isFinite(priceNumber)
+    ? priceNumber.toFixed(2)
+    : "N/A";
+  const renewalText =
+    hasSub && subscription!.renewalDate
+      ? formatDate(subscription!.renewalDate)
+      : "N/A";
 
   return (
     <Card>
@@ -33,13 +42,15 @@ export function OwnerPlanCard({ subscription, onUpgrade }: OwnerPlanCardProps) {
           <p className="text-sm text-muted-foreground">Current plan</p>
           <p className="font-medium">{planName}</p>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">Price</p>
-          <p className="font-medium">{pricePerMonth.toFixed(2)}/month</p>
+        <div>
+          <p className="text-slate-500">Price</p>
+          <p className="font-medium">
+            {hasSub ? `${priceText}/month` : "No subscription data available"}
+          </p>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">Renews on</p>
-          <p className="font-medium">{formatDate(renewalDate)}</p>
+        <div>
+          <p className="text-slate-500">Renews on</p>
+          <p className="font-medium">{renewalText}</p>
         </div>
       </CardContent>
       <Separator />

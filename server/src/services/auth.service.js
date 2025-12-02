@@ -2,6 +2,7 @@
 
 const User = require("../models/sql/user.model");
 const CognitoService = require("./cognito.service");
+const { USER_ROLES } = require("../types/enums");
 const {
   BadRequestError,
   AuthFailureError,
@@ -9,9 +10,11 @@ const {
   ConflictRequestError,
 } = require("../core/error.response");
 
+const ALLOWED_ROLES = ["car_owner", "iot_team", "cloud_team", "staff"];
+
 class AuthService {
   // Register a new user
-  async signup({ username, password, email, role = "user" }) {
+  async signup({ username, password, email, role = "car_owner" }) {
     try {
       // Validate input
       if (!username || !password || !email) {
@@ -19,10 +22,9 @@ class AuthService {
       }
 
       // Validate role
-      const validRoles = ["user", "admin", "staff"];
-      if (!validRoles.includes(role)) {
+      if (!Object.values(USER_ROLES).includes(role)) {
         throw new BadRequestError(
-          `Invalid role. Must be one of: ${validRoles.join(", ")}`
+          `Invalid role. Must be one of: ${Object.values(USER_ROLES).join(", ")}`
         );
       }
 
@@ -84,10 +86,21 @@ class AuthService {
   }
 
   // Authenticate user credentials
-  async login({ username, password }) {
+  async login({ username, password, loginAs }) {
     try {
       if (!username || !password) {
         throw new BadRequestError("Username and password are required");
+      }
+      if (!loginAs) {
+        throw new BadRequestError("loginAs is required");
+      }
+
+      const normalizedLoginAs =
+        typeof loginAs === "string" ? loginAs.toLowerCase().trim() : null;
+      if (normalizedLoginAs && !ALLOWED_ROLES.includes(normalizedLoginAs)) {
+        throw new BadRequestError(
+          `Invalid login role. Must be one of: ${ALLOWED_ROLES.join(", ")}`
+        );
       }
 
       // Authenticate with Cognito
@@ -107,6 +120,14 @@ class AuthService {
         });
       }
 
+      // Enforce login-as role when provided
+      const userRole = (localUser?.role || "").toLowerCase();
+      if (normalizedLoginAs && userRole !== normalizedLoginAs) {
+        throw new AuthFailureError(
+          `User is not authorized to log in as ${normalizedLoginAs}`
+        );
+      }
+
       // Update last login
       await localUser.updateLastLogin();
 
@@ -118,15 +139,7 @@ class AuthService {
           expiresIn: cognitoResult.expiresIn,
           tokenType: cognitoResult.tokenType,
         },
-        user: {
-          id: localUser.id,
-          username: localUser.username,
-          email: localUser.email,
-          role: cognitoResult.user.role,
-          groups: cognitoResult.user.groups,
-          emailVerified: cognitoResult.user.emailVerified,
-          lastLogin: localUser.lastLogin,
-        },
+        user: { localUser },
       };
     } catch (error) {
       if (error.name === "NotAuthorizedException") {
@@ -141,18 +154,136 @@ class AuthService {
     }
   }
 
-  // Retrieve user profile information
-  async getUserProfile(username) {
+  // Confirm signup using a verification code
+  async confirmSignUp({ username, code }) {
     try {
-      // Get user from Cognito
-      const cognitoUser = await CognitoService.getUserDetails(username);
-      
-      // Get user from local database
-      const localUser = await User.findByUsername(username);
+      if (!username || !code) {
+        throw new BadRequestError("Username and code are required");
+      }
+
+      const inputIsEmail = /.+@.+\..+/.test(username);
+      let primary = username;
+      let alternate = null;
+
+      if (!inputIsEmail) {
+        const local = await User.findByUsername(username);
+        if (local?.email) {
+          primary = local.email; // try email first (newer signups)
+          alternate = username; // fallback to raw username (older signups)
+        }
+      } else {
+        // If input is email, still try fallback to username from DB if exists
+        const localByEmail = await User.findByEmail(username);
+        if (localByEmail?.username) {
+          alternate = localByEmail.username;
+        }
+      }
+
+      let result;
+      try {
+        result = await CognitoService.confirmSignUp({
+          username: primary,
+          code,
+        });
+      } catch (err) {
+        if (alternate) {
+          result = await CognitoService.confirmSignUp({
+            username: alternate,
+            code,
+          });
+        } else {
+          throw err;
+        }
+      }
+
+      // Mark local user as verified if found
+      const localUser = inputIsEmail
+        ? await User.findByEmail(username)
+        : await User.findByUsername(username);
+      if (localUser) {
+        localUser.emailVerified = true;
+        await localUser.save();
+      }
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Resend confirmation code
+  async resendConfirmation({ username }) {
+    try {
+      if (!username) {
+        throw new BadRequestError("Username is required");
+      }
+
+      const inputIsEmail = /.+@.+\..+/.test(username);
+      let primary = username;
+      let alternate = null;
+
+      if (!inputIsEmail) {
+        const local = await User.findByUsername(username);
+        if (local?.email) {
+          primary = local.email; // try email first
+          alternate = username; // fallback to raw username
+        }
+      } else {
+        const localByEmail = await User.findByEmail(username);
+        if (localByEmail?.username) {
+          alternate = localByEmail.username;
+        }
+      }
+
+      let result;
+      try {
+        result = await CognitoService.resendConfirmationCode({
+          username: primary,
+        });
+      } catch (err) {
+        if (alternate) {
+          result = await CognitoService.resendConfirmationCode({
+            username: alternate,
+          });
+        } else {
+          throw err;
+        }
+      }
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Retrieve user profile information
+  async getUserProfile(input) {
+    try {
+      const lookup =
+        typeof input === "string" ? { username: input } : input || {};
+      const username = (
+        lookup.username ||
+        lookup.cognitoUsername ||
+        ""
+      ).toLowerCase();
+
+      if (!username) {
+        throw new BadRequestError("Username is required");
+      }
+
+      const cognitoKey = lookup.cognitoUsername || username;
+      const cognitoPromise = CognitoService.getUserDetails(cognitoKey);
+
+      let localUser = await User.findByUsername(username);
+      if (!localUser && lookup.sub) {
+        localUser = await User.findByCognitoSub(lookup.sub);
+      }
 
       if (!localUser) {
         throw new NotFoundError("User not found in database");
       }
+
+      const cognitoUser = await cognitoPromise;
 
       return {
         username: cognitoUser.username,
@@ -161,13 +292,7 @@ class AuthService {
         groups: cognitoUser.groups,
         emailVerified: cognitoUser.emailVerified,
         userStatus: cognitoUser.userStatus,
-        localData: {
-          id: localUser.id,
-          createdAt: localUser.createdAt,
-          updatedAt: localUser.updatedAt,
-          lastLogin: localUser.lastLogin,
-          isActive: localUser.isActive,
-        },
+        localUser,
       };
     } catch (error) {
       throw error;
@@ -178,10 +303,9 @@ class AuthService {
   async updateUserRole(username, newRole) {
     try {
       // Validate role
-      const validRoles = ["user", "admin", "staff"];
-      if (!validRoles.includes(newRole)) {
+      if (!Object.values(USER_ROLES).includes(newRole)) {
         throw new BadRequestError(
-          `Invalid role. Must be one of: ${validRoles.join(", ")}`
+          `Invalid role. Must be one of: ${Object.values(USER_ROLES).join(", ")}`
         );
       }
 
@@ -193,7 +317,7 @@ class AuthService {
 
       // Update in local database
       const localUser = await User.findByUsername(username);
-      
+
       if (!localUser) {
         throw new NotFoundError("User not found in database");
       }
@@ -220,20 +344,26 @@ class AuthService {
   async getAllUsers({ page = 1, limit = 10, role = null, isActive = null }) {
     try {
       const where = {};
-      
+
       if (role) {
         where.role = role;
       }
-      
+
       if (isActive !== null) {
         where.isActive = isActive;
       }
 
-      const offset = (page - 1) * limit;
+      const safeLimit =
+        Number.isInteger(Number(limit)) && Number(limit) > 0
+          ? Number(limit)
+          : 10;
+      const safePage =
+        Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+      const offset = (safePage - 1) * safeLimit;
 
       const { count, rows } = await User.findAndCountAll({
         where,
-        limit,
+        limit: safeLimit,
         offset,
         order: [["createdAt", "DESC"]],
         attributes: { exclude: [] },
@@ -243,9 +373,9 @@ class AuthService {
         users: rows,
         pagination: {
           total: count,
-          page,
-          limit,
-          totalPages: Math.ceil(count / limit),
+          page: safePage,
+          limit: safeLimit,
+          totalPages: Math.ceil(count / safeLimit),
         },
       };
     } catch (error) {
@@ -257,7 +387,7 @@ class AuthService {
   async deactivateUser(username) {
     try {
       const user = await User.findByUsername(username);
-      
+
       if (!user) {
         throw new NotFoundError("User not found");
       }
@@ -281,7 +411,7 @@ class AuthService {
   async activateUser(username) {
     try {
       const user = await User.findByUsername(username);
-      
+
       if (!user) {
         throw new NotFoundError("User not found");
       }
@@ -299,6 +429,14 @@ class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async refreshTokens({ refreshToken }) {
+    if (!refreshToken) {
+      throw new BadRequestError("refreshToken is required");
+    }
+    const tokens = await CognitoService.refreshTokens(refreshToken);
+    return { tokens };
   }
 }
 

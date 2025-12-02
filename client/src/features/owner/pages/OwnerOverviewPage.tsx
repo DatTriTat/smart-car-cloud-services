@@ -24,9 +24,12 @@ import SimpleMap from "@/components/shared/Map";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CarStatusBadge } from "@/components/status/CarStatusBadge";
 import { AlertPieChart } from "@/components/shared/Chart";
+import { capitalize, formatDate } from "@/utils";
+import { useAuth } from "@/auth/AuthContext";
 
 export function OwnerOverviewPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "me";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
 
   if (isLoading) return <Loading />;
@@ -94,7 +97,10 @@ export function OwnerOverviewPage() {
   ];
 
   return (
-    <OwnerLayout>
+    <OwnerLayout
+      cars={cars}
+      ownerName={data.owner?.username || data.owner?.cognitoUsername}
+    >
       {() => (
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-4">
@@ -166,7 +172,25 @@ export function OwnerOverviewPage() {
                       {/* pseudo map view */}
                       <div className="h-60">
                         {location ? (
-                          <SimpleMap carLocation={location} />
+                          <div className="text-center space-y-1">
+                            <div className="font-medium">
+                              Map preview (mock)
+                            </div>
+                            <div>
+                              {Number.isFinite(Number(location.latitude)) &&
+                              Number.isFinite(Number(location.longitude)) ? (
+                                <>
+                                  Lat: {Number(location.latitude).toFixed(3)},
+                                  Lng: {Number(location.longitude).toFixed(3)}
+                                </>
+                              ) : (
+                                <span>Location unavailable</span>
+                              )}
+                            </div>
+                            <div className="text-slate-500">
+                              Last seen: {formatDate(location.lastSeenAt)}
+                            </div>
+                          </div>
                         ) : (
                           <EmptyState message="No location data" />
                         )}
@@ -189,7 +213,9 @@ export function OwnerOverviewPage() {
                             <p className="text-muted-foreground">
                               Last alert:{" "}
                               <span className="font-medium">
-                                {capitalize(lastAlert.type)}
+                                {lastAlert.type
+                                  ? capitalize(String(lastAlert.type))
+                                  : "Unknown"}
                               </span>
                             </p>
                           )}

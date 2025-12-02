@@ -14,9 +14,11 @@ import {
 } from "@/components/ui/table";
 import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
 import { capitalize } from "@/utils";
+import { useAuth } from "@/auth/AuthContext";
 
 export function CloudOverviewPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
 
   if (isLoading) return <Loading />;
@@ -136,7 +138,7 @@ export function CloudOverviewPage() {
                           </span>
                         </TableCell>
                         <TableCell>{capitalize(alert.type)}</TableCell>
-                        <TableCell>{alert.message}</TableCell>
+                        <TableCell>{alert.description}</TableCell>
                         <TableCell className="text-right">
                           <AlertSeverityBadge severity={alert.severity} />
                         </TableCell>

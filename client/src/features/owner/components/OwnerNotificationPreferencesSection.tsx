@@ -23,7 +23,7 @@ import type {
 
 interface OwnerNotificationPreferencesSectionProps {
   planId: PlanId;
-  preferences: NotificationPreference[];
+  preferences: NotificationPreference[] | null | undefined;
   onToggleChannel: (channel: NotificationChannelKey, enabled: boolean) => void;
 }
 
@@ -32,7 +32,9 @@ export function OwnerNotificationPreferencesSection({
   preferences,
   onToggleChannel,
 }: OwnerNotificationPreferencesSectionProps) {
-  const filteredPreferences = preferences.filter((pref) => {
+  const safePreferences = Array.isArray(preferences) ? preferences : [];
+
+  const filteredPreferences = safePreferences.filter((pref) => {
     if (planId === "PREMIUM") return true;
 
     if (planId === "STANDARD") {
@@ -52,8 +54,10 @@ export function OwnerNotificationPreferencesSection({
       </CardHeader>
       <Separator />
       <CardContent>
-        {preferences.length === 0 ? (
-          <EmptyState message="No notification channels configured" />
+        {safePreferences.length === 0 ? (
+          <div className=" text-slate-500">
+            No notification channels configured.
+          </div>
         ) : (
           <div className="space-y-3">
             {filteredPreferences.map((pref) => (

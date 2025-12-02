@@ -56,25 +56,40 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedAlerts.map((alert) => (
-                <TableRow
-                  key={alert.id}
-                  onClick={() => onSelectAlert(alert)}
-                  className="hover:cursor-pointer"
-                >
-                  <TableCell className="text-muted-foreground">
-                    {formatDate(alert.createdAt)}
-                  </TableCell>
-                  <TableCell>{capitalize(alert.type)}</TableCell>
-                  <TableCell>
-                    <AlertSeverityBadge severity={alert.severity} />
-                  </TableCell>
-                  <TableCell>
-                    <AlertStatusBadge status={alert.status} />
-                  </TableCell>
-                  <TableCell>{alert.message}</TableCell>
-                </TableRow>
-              ))}
+              {alerts
+                .slice()
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                )
+                .map((alert) => (
+                  <TableRow
+                    key={alert.id}
+                    onClick={() => onSelectAlert(alert)}
+                    className="hover:cursor-pointer"
+                  >
+                    <TableCell className="text-slate-500">
+                      {formatDate(alert.createdAt)}
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-700">
+                      {alert.type
+                        ? capitalize(String(alert.type))
+                        : alert.alertType
+                        ? capitalize(String(alert.alertType))
+                        : "Unknown"}
+                    </TableCell>
+                    <TableCell>
+                      <AlertSeverityBadge severity={alert.severity} />
+                    </TableCell>
+                    <TableCell>
+                      <AlertStatusBadge status={alert.status} />
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {alert.description}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         )}

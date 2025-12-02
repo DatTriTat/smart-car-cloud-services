@@ -47,7 +47,7 @@ export function CloudModelDetailPage() {
   const [items, setItems] = useState<UploadItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<UploadItem | null>(null);
   const navigate = useNavigate();
-  const ownerId = "u-owner-1";
+  const ownerId = "";
 
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
 
