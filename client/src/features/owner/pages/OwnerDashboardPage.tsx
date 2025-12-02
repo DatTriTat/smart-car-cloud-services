@@ -81,7 +81,10 @@ export function OwnerDashboardPage() {
   const { cars, devices } = data;
 
   return (
-    <OwnerLayout cars={cars} ownerName={data.owner?.name}>
+    <OwnerLayout
+      cars={cars}
+      ownerName={data.owner?.username || data.owner?.cognitoUsername}
+    >
       {(selectedCarId) => {
         const selectedCar =
           cars.find((c) => c.id === (selectedCarId || "")) || null;
@@ -115,7 +118,9 @@ export function OwnerDashboardPage() {
           const alertTypeText = (alert.type || alert.alertType || "")
             .toString()
             .toLowerCase();
-          const haystack = `${alertTypeText} ${alert.message}`.toLowerCase();
+          const haystack = `${alertTypeText} ${
+            alert.description || ""
+          }`.toLowerCase();
           return severityOk && haystack.includes(query);
         });
 

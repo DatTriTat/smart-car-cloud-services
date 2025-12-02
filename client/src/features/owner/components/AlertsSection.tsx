@@ -80,7 +80,7 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
                       <AlertStatusBadge status={alert.status} />
                     </TableCell>
                     <TableCell className="text-slate-700">
-                      {alert.message}
+                      {alert.description}
                     </TableCell>
                   </TableRow>
                 ))}

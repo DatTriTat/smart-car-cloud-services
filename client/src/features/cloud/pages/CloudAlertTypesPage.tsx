@@ -21,9 +21,11 @@ import { Button } from "@/components/ui/button";
 import { AddAlertTypeDialog } from "../components/AddAlertTypeDialog";
 import { EditAlertTypeDialog } from "../components/EditAlertTypeDialog";
 import { DeleteAlertTypeDialog } from "../components/DeleteAlertTypeDialog";
+import { useAuth } from "@/auth/AuthContext";
 
 export function CloudAlertTypesPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const queryClient = useQueryClient();
 

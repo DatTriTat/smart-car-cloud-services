@@ -56,7 +56,10 @@ export function OwnerOverviewPage() {
   }
 
   return (
-    <OwnerLayout cars={cars} ownerName={data.owner?.name}>
+    <OwnerLayout
+      cars={cars}
+      ownerName={data.owner?.username || data.owner?.cognitoUsername}
+    >
       {() => (
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-4">
@@ -137,8 +140,8 @@ export function OwnerOverviewPage() {
                               {Number.isFinite(Number(location.latitude)) &&
                               Number.isFinite(Number(location.longitude)) ? (
                                 <>
-                                  Lat: {Number(location.latitude).toFixed(3)}, Lng:{" "}
-                                  {Number(location.longitude).toFixed(3)}
+                                  Lat: {Number(location.latitude).toFixed(3)},
+                                  Lng: {Number(location.longitude).toFixed(3)}
                                 </>
                               ) : (
                                 <span>Location unavailable</span>

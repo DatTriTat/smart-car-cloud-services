@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export function CloudModelDetailPage() {
   const { modelId } = useParams<{ modelId: string }>();
   const navigate = useNavigate();
-  const ownerId = "u-owner-1";
+  const ownerId = "";
 
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
 
