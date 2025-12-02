@@ -20,14 +20,14 @@ const owner: User = {
 const carLocations: CarLocation[] = [
   {
     carId: "car-1",
-    latitude: 37.3349, // around Cupertino
-    longitude: -122.009,
+    latitude: 37.3210469, // around Cupertino
+    longitude: -121.9492112,
     lastSeenAt: "2025-11-22T18:15:00Z",
   },
   {
     carId: "car-2",
-    latitude: 37.7749, // around San Francisco
-    longitude: -122.4194,
+    latitude: 37.3336, // around San Francisco
+    longitude: -121.9153,
     lastSeenAt: "2025-11-22T17:50:00Z",
   },
 ];

@@ -15,6 +15,7 @@ import { AlertsFilterBar } from "../components/AlertsFilterBar";
 import type { AlertSeverityFilter } from "../components/AlertsFilterBar";
 import Loading from "@/components/shared/Loading";
 import Error from "@/components/shared/Error";
+import { Separator } from "@/components/ui/separator";
 
 export function OwnerDashboardPage() {
   const ownerId = "u-owner-1";
@@ -104,9 +105,12 @@ export function OwnerDashboardPage() {
           <div className="space-y-6">
             <CarSummaryCard
               car={selectedCar}
+              totalDevices={carDevices.length}
               totalAlerts={totalAlerts}
               criticalAlerts={criticalAlerts}
             />
+
+            <Separator />
 
             <AlertsFilterBar
               severity={severityFilter}

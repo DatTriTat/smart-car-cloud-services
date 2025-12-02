@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import type { OwnerSubscription } from "@/domain/types";
 import { formatDate } from "@/utils";
 
@@ -26,21 +27,22 @@ export function OwnerPlanCard({ subscription, onUpgrade }: OwnerPlanCardProps) {
           Manage your smart surveillance subscription.
         </CardDescription>
       </CardHeader>
-
-      <CardContent className="space-y-3 text-slate-700">
-        <div>
-          <p className="text-slate-500">Current plan</p>
+      <Separator />
+      <CardContent className="space-y-3">
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">Current plan</p>
           <p className="font-medium">{planName}</p>
         </div>
-        <div>
-          <p className="text-slate-500">Price</p>
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">Price</p>
           <p className="font-medium">{pricePerMonth.toFixed(2)}/month</p>
         </div>
-        <div>
-          <p className="text-slate-500">Renews on</p>
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">Renews on</p>
           <p className="font-medium">{formatDate(renewalDate)}</p>
         </div>
       </CardContent>
+      <Separator />
       <CardFooter>
         <Button className="ml-auto" onClick={onUpgrade}>
           Upgrade plan

@@ -4,7 +4,6 @@ import { mockOwnerDashboardData } from "@/mocks/ownerDashboard";
 import { Link, useLocation } from "react-router";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/auth/AuthContext";
-import { Button } from "@/components/ui/button";
 
 interface OwnerLayoutProps {
   children: (selectedCarId: string) => ReactNode;
@@ -18,14 +17,15 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
 
   const navItems = [
     { label: "Overview", path: "/owner/overview" },
-    { label: "My Cars", path: "/owner/dashboard" },
     { label: "Account", path: "/owner/account" },
+    { label: "Notifications", path: "/owner/notifications" },
+    { label: "My Cars", path: "/owner/dashboard" },
   ];
 
   const displayName = user?.name ?? owner.name;
 
   return (
-    <div className="min-h-screen flex bg-slate-100">
+    <div className="min-h-screen flex">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r p-4 flex flex-col">
         <div className="mb-6">
