@@ -1,7 +1,7 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
 import type { AiModel } from "@/domain/types";
-import { useOwnerDashboard } from "@/features/owner/hooks/useOwnerDashboard";
+import { useCloudDashboard } from "@/features/cloud/hooks/useCloudDashboard";
 import { useNavigate, useParams } from "react-router";
 import { CloudLayout } from "../components/CloudLayout";
 import { Button } from "@/components/ui/button";
@@ -47,9 +47,8 @@ export function CloudModelDetailPage() {
   const [items, setItems] = useState<UploadItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<UploadItem | null>(null);
   const navigate = useNavigate();
-  const ownerId = "";
 
-  const { data, isLoading, error } = useOwnerDashboard(ownerId);
+  const { data, isLoading, error } = useCloudDashboard();
 
   useEffect(() => {
     if (files.length > 0) {
@@ -278,7 +277,11 @@ function Result({ item }: ResultProps) {
     );
   }
 
-  function getSimulatedPrediction() {
+  function getSimulatedPrediction(): {
+    probabilities: Record<string, number>;
+    prediction: string;
+    confidence: number;
+  } {
     const keys = [
       "alert_sounds",
       "emergency_sirens",
@@ -307,7 +310,7 @@ function Result({ item }: ResultProps) {
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
     // 4. Normalize to 100% and find the highest
-    const result = {};
+    const result: Record<string, number> = {};
     let highestType = "";
     let highestValue = -1;
 
@@ -329,7 +332,8 @@ function Result({ item }: ResultProps) {
     };
   }
 
-  const result = getSimulatedPrediction();
+    const result = getSimulatedPrediction();
+  const probEntries = Object.entries(result.probabilities as Record<string, number>);
 
   return (
     <Card>
@@ -349,26 +353,19 @@ function Result({ item }: ResultProps) {
           </ItemContent>
         </Item>
         <div className="flex flex-col gap-2">
-          {!item ? (
-            <div>Hello</div>
-          ) : (
-            Object.keys(result.probabilities).map((key) => (
-              <Item variant="outline" key={key}>
-                <ItemContent>
-                  <ItemTitle className="w-full flex items-center">
-                    <span className="flex-2">{capitalize(key)}</span>
-                    <Progress
-                      value={result.probabilities[key].toFixed(1)}
-                      className="flex-4"
-                    />
-                    <span className="flex-1 text-right">
-                      {result.probabilities[key].toFixed(1)}%
-                    </span>
-                  </ItemTitle>
-                </ItemContent>
-              </Item>
-            ))
-          )}
+          {probEntries.map(([key, value]) => (
+            <Item variant="outline" key={key}>
+              <ItemContent>
+                <ItemTitle className="w-full flex items-center">
+                  <span className="flex-2">{capitalize(key)}</span>
+                  <Progress value={value} className="flex-4" />
+                  <span className="flex-1 text-right">
+                    {value.toFixed(1)}%
+                  </span>
+                </ItemTitle>
+              </ItemContent>
+            </Item>
+          ))}
         </div>
       </CardContent>
     </Card>

@@ -79,7 +79,7 @@ export function OwnerDashboardPage() {
   if (isLoading) return <Loading />;
   if (error || !data) return <Error error={error} />;
 
-  const { cars, devices } = data;
+  const { cars, devices, alertTypes = [] } = data;
 
   return (
     <OwnerLayout
@@ -147,6 +147,7 @@ export function OwnerDashboardPage() {
 
             <AlertsSection
               alerts={filteredAlerts}
+              alertTypes={alertTypes}
               onSelectAlert={handleSelectAlert}
             />
 

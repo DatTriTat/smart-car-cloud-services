@@ -59,6 +59,7 @@ export interface Alert {
   severity: AlertSeverity;
   status: AlertStatus;
   description?: string; // backend often returns description
+  message?: string; // optional message field from backend
   confidenceScore: number;
   createdAt: string;
   acknowledgedAt?: string;
@@ -125,16 +126,18 @@ export type AlertCategory =
   | "SECURITY"
   | "MAINTENANCE"
   | "ANIMAL"
-  | "PASSENGER";
+  | "PASSENGER"
+  | "UNKNOWN";
 
 export interface AlertTypeDef {
-  id: string;
-  key: string;
-  name: string;
-  category: AlertCategory;
-  defaultSeverity: "INFO" | "WARN" | "CRITICAL";
-  description: string;
-  enabled: boolean;
+  id?: string;
+  key?: string;
+  type?: string; // backend may return "type" as primary key
+  name?: string;
+  category?: AlertCategory | "UNKNOWN";
+  defaultSeverity?: "INFO" | "WARN" | "CRITICAL";
+  description?: string;
+  enabled?: boolean;
 }
 
 // ---- Owner Dashboard aggregate ----

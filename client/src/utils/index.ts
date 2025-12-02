@@ -1,13 +1,16 @@
 import type { ChartConfig } from "@/components/ui/chart";
 import type { Alert } from "@/domain/types";
 
-export function capitalize(alertType: string) {
-  const words = alertType.toLowerCase().split("_");
+export function capitalize(alertType: string | undefined | null) {
+  if (!alertType) return "Unknown";
+  const safe = String(alertType);
+  const words = safe.toLowerCase().split("_");
   const result = [];
   for (const word of words) {
+    if (!word) continue;
     result.push(word[0].toUpperCase() + word.slice(1));
   }
-  return result.join(" ");
+  return result.join(" ") || "Unknown";
 }
 
 export function formatDate(iso: string) {
@@ -22,11 +25,15 @@ export function formatDate(iso: string) {
 }
 
 export function getChartDatas(alerts: Alert[]) {
-  const alertTypes = new Set(alerts.map((alert) => alert.type));
+  // normalize type, fallback to alert.alertType or "unknown"
+  const normalized = alerts.map((alert) => alert.type || (alert as any).alertType || "unknown");
+  const alertTypes = new Set(normalized);
+
   const chartData = [...alertTypes].map((alertType) => {
+    const count = normalized.filter((type) => type === alertType).length;
     return {
       type: alertType,
-      quantity: alerts.filter((alert) => alert.type === alertType).length,
+      quantity: count,
       fill: `var(--color-${alertType})`,
     };
   });

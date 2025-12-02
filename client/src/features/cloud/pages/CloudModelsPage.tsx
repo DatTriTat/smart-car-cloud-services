@@ -1,7 +1,8 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
-import type { OwnerDashboardData, AiModel } from "@/domain/types";
-import { useOwnerDashboard } from "@/features/owner/hooks/useOwnerDashboard";
+import type { AiModel } from "@/domain/types";
+import type { CloudDashboardData } from "@/features/cloud/api/cloudDashboardApi";
+import { useCloudDashboard } from "@/features/cloud/hooks/useCloudDashboard";
 import { CloudLayout } from "../components/CloudLayout";
 import {
   Card,
@@ -22,7 +23,6 @@ import {
 import { formatDate } from "@/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { saveOwnerDashboard } from "@/features/owner/api/ownerDashboardStorage";
 import { Button } from "@/components/ui/button";
 import { AddModelDialog } from "../components/AddModelDialog";
 import { EditModelDialog } from "../components/EditModelDialog";
@@ -38,13 +38,8 @@ import {
   PenLine,
   Trash2,
 } from "lucide-react";
-import { useAuth } from "@/auth/AuthContext";
-
-
 export function CloudModelsPage() {
-  const { user } = useAuth();
-  const ownerId = user?.id || "";
-  const { data, isLoading, error } = useOwnerDashboard(ownerId);
+  const { data, isLoading, error } = useCloudDashboard();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -81,15 +76,14 @@ export function CloudModelsPage() {
             deploymentStage: "STAGING",
           };
 
-          queryClient.setQueryData<OwnerDashboardData | undefined>(
-            ["ownerDashboard", ownerId],
+          queryClient.setQueryData<CloudDashboardData | undefined>(
+            ["cloudDashboard"],
             (oldData) => {
               if (!oldData) return oldData;
-              const newData: OwnerDashboardData = {
+              const newData: CloudDashboardData = {
                 ...oldData,
                 aiModels: [...oldData.aiModels, newModel],
               };
-              saveOwnerDashboard(newData);
               return newData;
             }
           );
@@ -102,28 +96,27 @@ export function CloudModelsPage() {
   }
 
   function handleSaveEditedModel(updated: AiModel) {
-    queryClient.setQueryData<OwnerDashboardData | undefined>(
-      ["ownerDashboard", ownerId],
+    queryClient.setQueryData<CloudDashboardData | undefined>(
+      ["cloudDashboard"],
       (oldData) => {
         if (!oldData) return oldData;
 
         const newModels = oldData.aiModels.map((model) =>
           model.id === updated.id ? updated : model
         );
-        const newData: OwnerDashboardData = {
+        const newData: CloudDashboardData = {
           ...oldData,
           aiModels: newModels,
         };
 
-        saveOwnerDashboard(newData);
         return newData;
       }
     );
   }
 
   function handleDeleteModel(modelId: string) {
-    queryClient.setQueryData<OwnerDashboardData | undefined>(
-      ["ownerDashboard", ownerId],
+    queryClient.setQueryData<CloudDashboardData | undefined>(
+      ["cloudDashboard"],
       (oldData) => {
         if (!oldData) return oldData;
 
@@ -131,12 +124,11 @@ export function CloudModelsPage() {
           (model) => model.id !== modelId
         );
 
-        const newData: OwnerDashboardData = {
+        const newData: CloudDashboardData = {
           ...oldData,
           aiModels: newModels,
         };
 
-        saveOwnerDashboard(newData);
         return newData;
       }
     );

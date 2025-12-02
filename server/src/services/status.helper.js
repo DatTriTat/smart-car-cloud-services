@@ -5,6 +5,10 @@ function mapStatusToUpper(value, fallback) {
   return String(value).toUpperCase();
 }
 
+function mapCarStatus(status) {
+  return mapStatusToUpper(status, "UNKNOWN");
+}
+
 function mapDeviceStatus(status) {
   return mapStatusToUpper(status, "UNKNOWN");
 }
@@ -28,6 +32,7 @@ function toPlain(value) {
 }
 
 module.exports = {
+  mapCarStatus,
   mapDeviceStatus,
   mapAlertStatus,
   mapSeverityToThreeLevels,
