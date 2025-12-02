@@ -34,13 +34,14 @@ export function OwnerLayout({ children, cars, ownerName }: OwnerLayoutProps) {
 
   const navItems = [
     { label: "Overview", path: "/owner/overview" },
-    { label: "My Cars", path: "/owner/dashboard" },
     { label: "Account", path: "/owner/account" },
+    { label: "Notifications", path: "/owner/notifications" },
+    { label: "My Cars", path: "/owner/dashboard" },
   ];
 
   const displayName = user?.name || ownerName || "Owner";
   return (
-    <div className="min-h-screen flex bg-slate-100">
+    <div className="min-h-screen flex">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r p-4 flex flex-col">
         <div className="mb-6">

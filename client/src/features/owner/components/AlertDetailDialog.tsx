@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import type { Alert, IoTDevice } from "@/domain/types";
 import { capitalize, formatDate } from "@/utils";
 
@@ -33,14 +35,15 @@ export function AlertDetailDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Alert Detail</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-3 text-sm text-slate-700 mt-2">
-          <div className="flex items-center gap-2">
+          <DialogDescription className="flex items-center gap-2">
             <AlertSeverityBadge severity={alert.severity} />
             <AlertStatusBadge status={alert.status} />
-          </div>
+          </DialogDescription>
+        </DialogHeader>
 
+        <Separator />
+
+        <div className="space-y-3 text-sm text-slate-700 mt-2">
           <div>
             <p className="text-xs text-slate-500">Type</p>
             <p className="font-medium">
@@ -57,19 +60,22 @@ export function AlertDetailDialog({
             <p>{alert.description}</p>
           </div>
 
-          <div>
-            <p className="text-xs text-slate-500">Detected at</p>
-            <p>{formatDate(alert.createdAt)}</p>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Detected at</p>
+            <p className="font-medium">{formatDate(alert.createdAt)}</p>
           </div>
 
           {device && (
             <div>
-              <p className="text-xs text-slate-500">Triggered by device</p>
+              <p className="text-sm text-muted-foreground">
+                Triggered by device
+              </p>
               <p className="font-medium">{device.deviceName}</p>
-              <p>{device.deviceType}</p>
             </div>
           )}
         </div>
+
+        <Separator />
 
         <DialogFooter>
           {alert.status === "NEW" && (

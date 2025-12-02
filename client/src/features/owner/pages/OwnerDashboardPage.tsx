@@ -10,6 +10,7 @@ import { AlertDetailDialog } from "../components/AlertDetailDialog";
 import { OwnerServiceConfigSection } from "../components/OwnerServiceConfigSection";
 import { AlertsFilterBar } from "../components/AlertsFilterBar";
 import type { AlertSeverityFilter } from "../components/AlertsFilterBar";
+import { Separator } from "@/components/ui/separator";
 import type {
   Alert,
   CarServiceConfig,
@@ -128,9 +129,12 @@ export function OwnerDashboardPage() {
           <div className="space-y-6">
             <CarSummaryCard
               car={selectedCar}
+              totalDevices={carDevices.length}
               totalAlerts={totalAlerts}
               criticalAlerts={criticalAlerts}
             />
+
+            <Separator />
 
             <AlertsFilterBar
               severity={severityFilter}

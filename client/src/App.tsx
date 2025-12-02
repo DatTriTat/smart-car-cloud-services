@@ -73,6 +73,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { FileUpload } from "./components/shared/UploadFile";
+import SimpleMap from "./components/shared/Map";
 
 const MLModuleManager = () => {
   const [selectedModel, setSelectedModel] = useState(null);

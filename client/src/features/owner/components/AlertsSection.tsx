@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/shared/EmptyState";
 import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
 import { AlertStatusBadge } from "@/components/status/AlertStatusBadge";
 import {
@@ -24,6 +25,13 @@ interface AlertsSectionProps {
 }
 
 export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
+  const sortedAlerts = alerts
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
   return (
     <Card>
       <CardHeader>
@@ -35,9 +43,7 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
       </CardHeader>
       <CardContent>
         {alerts.length === 0 ? (
-          <div className="text-slate-500">
-            No alerts for this car in the recent period.
-          </div>
+          <EmptyState message="No alerts for this car in the recent period" />
         ) : (
           <Table>
             <TableHeader>
