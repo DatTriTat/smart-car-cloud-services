@@ -43,6 +43,7 @@ export function AlertDetailDialog({
 
         <Separator />
 
+        <div className="space-y-3 text-sm text-slate-700 mt-2">
           <div>
             <p className="text-xs text-slate-500">Type</p>
             <p className="font-medium">

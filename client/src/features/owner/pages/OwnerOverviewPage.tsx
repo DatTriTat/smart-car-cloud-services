@@ -20,11 +20,10 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import SimpleMap from "@/components/shared/Map";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CarStatusBadge } from "@/components/status/CarStatusBadge";
 import { AlertPieChart } from "@/components/shared/Chart";
-import { capitalize, formatDate } from "@/utils";
+import { formatDate } from "@/utils";
 import { useAuth } from "@/auth/AuthContext";
 
 export function OwnerOverviewPage() {
