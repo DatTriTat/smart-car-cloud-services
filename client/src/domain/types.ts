@@ -107,6 +107,8 @@ export interface OwnerSubscription {
 // ---- AI Models ----
 export type AiModeStatus = "RUNNING" | "TRAINING" | "OFFLINE";
 
+export type DeploymentStage = "PRODUCTION" | "STAGING" | "ARCHIVED";
+
 export interface AiModel {
   id: string;
   name: string;
@@ -114,6 +116,8 @@ export interface AiModel {
   version: string;
   status: AiModeStatus;
   updatedAt: string;
+  accuracy: number; // e.g. 94.2
+  deploymentStage: DeploymentStage;
 }
 
 export type AlertCategory =

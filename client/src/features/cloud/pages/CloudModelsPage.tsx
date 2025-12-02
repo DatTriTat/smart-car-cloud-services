@@ -3,7 +3,14 @@ import Loading from "@/components/shared/Loading";
 import type { OwnerDashboardData, AiModel } from "@/domain/types";
 import { useOwnerDashboard } from "@/features/owner/hooks/useOwnerDashboard";
 import { CloudLayout } from "../components/CloudLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -20,14 +27,26 @@ import { Button } from "@/components/ui/button";
 import { AddModelDialog } from "../components/AddModelDialog";
 import { EditModelDialog } from "../components/EditModelDialog";
 import { DeleteModelDialog } from "../components/DeleteModelDialog";
-import { Link } from "react-router";
+import { toast } from "sonner";
+import { Link, useNavigate } from "react-router";
+import {
+  Activity,
+  BarChart3,
+  CheckCircle,
+  Code,
+  Cpu,
+  PenLine,
+  Trash2,
+} from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
+
 
 export function CloudModelsPage() {
   const { user } = useAuth();
   const ownerId = user?.id || "";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
@@ -43,25 +62,41 @@ export function CloudModelsPage() {
     version: string;
     status: AiModel["status"];
   }) {
-    const newModel: AiModel = {
-      id: `model-${Date.now()}`,
-      name: payload.name,
-      type: payload.type,
-      version: payload.version,
-      status: payload.status,
-      updatedAt: new Date().toISOString(),
-    };
+    toast.promise<{ name: string }>(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ name: payload.name }), 2000)
+        ),
+      {
+        loading: "Loading...",
+        success: (data) => {
+          const newModel: AiModel = {
+            id: `model-${Date.now()}`,
+            name: payload.name,
+            type: payload.type,
+            version: payload.version,
+            status: payload.status,
+            updatedAt: new Date().toISOString(),
+            accuracy: 0, // e.g. 94.2
+            deploymentStage: "STAGING",
+          };
 
-    queryClient.setQueryData<OwnerDashboardData | undefined>(
-      ["ownerDashboard", ownerId],
-      (oldData) => {
-        if (!oldData) return oldData;
-        const newData: OwnerDashboardData = {
-          ...oldData,
-          aiModels: [...oldData.aiModels, newModel],
-        };
-        saveOwnerDashboard(newData);
-        return newData;
+          queryClient.setQueryData<OwnerDashboardData | undefined>(
+            ["ownerDashboard", ownerId],
+            (oldData) => {
+              if (!oldData) return oldData;
+              const newData: OwnerDashboardData = {
+                ...oldData,
+                aiModels: [...oldData.aiModels, newModel],
+              };
+              saveOwnerDashboard(newData);
+              return newData;
+            }
+          );
+
+          return `${data.name} has been created`;
+        },
+        error: "Error",
       }
     );
   }
@@ -113,33 +148,80 @@ export function CloudModelsPage() {
 
   const models = data.aiModels as AiModel[];
 
+  const metrics = [
+    {
+      label: "Active Models",
+      value: models.filter((model) => model.status === "RUNNING").length,
+      icon: Cpu,
+      color: "text-blue-600",
+      trend: "+12%",
+    },
+    {
+      label: "Training Jobs",
+      value: models.filter((model) => model.status === "TRAINING").length,
+      icon: Activity,
+      color: "text-orange-600",
+      trend: "+1",
+    },
+    {
+      label: "Avg Accuracy",
+      value: `${
+        models.length === 0
+          ? 0
+          : (
+              models.reduce((total, model) => total + model.accuracy, 0) /
+              models.length
+            ).toFixed(1)
+      }%`,
+      icon: BarChart3,
+      color: "text-green-600",
+      trend: "+2.3%",
+    },
+    {
+      label: "Total Predictions",
+      value: "1.2M",
+      icon: CheckCircle,
+      color: "text-purple-600",
+      trend: "+45K",
+    },
+  ];
+
   return (
     <CloudLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold">AI models</h1>
-            <p className="text-sm text-slate-500">
-              Manage audio intelligence models deployed to the smart car cloud.
-            </p>
-          </div>
-          <div className="flex flex-col items-end text-sm text-slate-600">
-            <span className="uppercase tracking-wide text-slate-400">
-              TOTAL MODELS
-            </span>
-            <span className="font-medium">{models.length}</span>
-          </div>
-        </div>
+      {/* Models table */}
 
-        {/* Models table */}
+      {/* Metrics Dashboard */}
+      <div className="border-b bg-muted/40 px-6 py-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {metrics.map((metric, idx) => (
+            <Card key={idx}>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>{metric.label}</CardTitle>
+                <metric.icon className={`${metric.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metric.value}</div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                  {metric.trend} from last month
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+      <div className="p-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div>Deployed AI Models</div>
+            <CardTitle>Registered Models</CardTitle>
+            <CardDescription>
+              Manage and monitor all your machine learning models
+            </CardDescription>
+            <CardAction>
               <Button onClick={() => setIsAddDialogOpen(true)}>
-                Add Model
+                <Code />
+                Create New Model
               </Button>
-            </CardTitle>
+            </CardAction>
           </CardHeader>
           <CardContent>
             {models.length === 0 ? (
@@ -150,24 +232,21 @@ export function CloudModelsPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Version</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Last updated</TableHead>
+                    <TableHead>Accuracy</TableHead>
+                    <TableHead>Version</TableHead>
+                    <TableHead>Last Trained</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {models.map((model) => (
                     <TableRow key={model.id}>
-                      <TableCell>
-                        <Link
-                          to={`/cloud/models/${model.id}`}
-                          className="hover:underline"
-                        >
+                      <TableCell className="hover:underline">
+                        <Link to={`/cloud/models/${model.id}`}>
                           {model.name}
                         </Link>
                       </TableCell>
                       <TableCell>{model.type}</TableCell>
-                      <TableCell>{model.version}</TableCell>
                       <TableCell
                         className={
                           model.status === "RUNNING"
@@ -179,6 +258,14 @@ export function CloudModelsPage() {
                       >
                         {model.status}
                       </TableCell>
+                      <TableCell className="text-emerald-600 font-medium">
+                        {model.accuracy.toFixed(1)}%
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-sm bg-muted px-2 py-1 rounded">
+                          {model.version}
+                        </code>
+                      </TableCell>
                       <TableCell>{formatDate(model.updatedAt)}</TableCell>
                       <TableCell className="flex items-center gap-4 justify-end">
                         <Button
@@ -188,6 +275,7 @@ export function CloudModelsPage() {
                             setIsEditDialogOpen(true);
                           }}
                         >
+                          <PenLine />
                           Edit
                         </Button>
                         <Button
@@ -196,6 +284,7 @@ export function CloudModelsPage() {
                             setIsDeleteDialogOpen(true);
                           }}
                         >
+                          <Trash2 />
                           Delete
                         </Button>
                       </TableCell>
