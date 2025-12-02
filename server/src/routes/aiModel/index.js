@@ -15,5 +15,9 @@ router.post(
   upload.single("file"),
   asyncErrorHandler(AiModelController.classify)
 );
+router.patch(
+  "/:id/results/judge",
+  asyncErrorHandler(AiModelController.judgeResult)
+);
 
 module.exports = router;

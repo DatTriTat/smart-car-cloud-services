@@ -14,6 +14,7 @@ const AiModelResultSchema = new mongoose.Schema(
     success: Boolean,
     endpoint: String,
     region: String,
+    isCorrect: { type: Boolean, default: null },
   },
   { _id: false, timestamps: { createdAt: true, updatedAt: false } }
 );

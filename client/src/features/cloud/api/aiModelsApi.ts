@@ -54,3 +54,24 @@ export async function predictWithAiModel(
   }
   return body.data;
 }
+
+export async function judgeAiResult(payload: {
+  modelId: string;
+  filename?: string;
+  createdAt?: string;
+  isCorrect: boolean;
+}) {
+  const res = await authFetch(`/ai-models/${payload.modelId}/results/judge`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      filename: payload.filename,
+      createdAt: payload.createdAt,
+      isCorrect: payload.isCorrect,
+    }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(body?.message || "Failed to update result judgement");
+  }
+  return body.data;
+}

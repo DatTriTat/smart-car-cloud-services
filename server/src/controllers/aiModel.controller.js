@@ -40,7 +40,8 @@ class AiModelController {
       filename: file.originalname,
     });
 
-    model.results.push({
+    const createdAt = new Date();
+    const storedResult = {
       filename: result.filename,
       contentType: result.contentType,
       fileSizeBytes: result.fileSizeBytes,
@@ -51,7 +52,11 @@ class AiModelController {
       success: result.success,
       endpoint: result.endpoint,
       region: result.region,
-    });
+      isCorrect: null,
+      createdAt,
+    };
+
+    model.results.push(storedResult);
     model.updatedAt = new Date();
     await model.save();
 
@@ -59,7 +64,38 @@ class AiModelController {
 
     return new OK({
       message: "Classification completed",
-      data: { modelId: model._id, ...result },
+      data: { modelId: model._id, ...result, createdAt },
+    }).send(res);
+  }
+
+  async judgeResult(req, res) {
+    const { id } = req.params;
+    const { filename, isCorrect, createdAt } = req.body || {};
+    if (typeof isCorrect !== "boolean") {
+      throw new BadRequestError("isCorrect (boolean) is required");
+    }
+
+    const model = await AiModel.findById(id);
+    if (!model) throw new NotFoundError("Model not found");
+
+    const match = model.results.find((r) => {
+      if (createdAt && r.createdAt) {
+        return String(new Date(r.createdAt).getTime()) === String(new Date(createdAt).getTime());
+      }
+      return r.filename === filename;
+    });
+
+    if (!match) {
+      throw new NotFoundError("Result not found");
+    }
+
+    match.isCorrect = isCorrect;
+    model.markModified("results");
+    await model.save();
+
+    return new OK({
+      message: "Result judgement updated",
+      data: { modelId: model._id, filename: match.filename, isCorrect },
     }).send(res);
   }
 }

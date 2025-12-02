@@ -1,7 +1,7 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
 import type { AiModel } from "@/domain/types";
-import { predictWithAiModel } from "../api/aiModelsApi";
+import { judgeAiResult, predictWithAiModel } from "../api/aiModelsApi";
 import { useCloudDashboard } from "@/features/cloud/hooks/useCloudDashboard";
 import { useNavigate, useParams } from "react-router";
 import { CloudLayout } from "../components/CloudLayout";
@@ -36,6 +36,7 @@ import { capitalize } from "@/utils";
 
 interface UploadItem {
   filename: string;
+  createdAt?: string;
   isAlreadyClicked: boolean;
   isRight: boolean;
   predictions: number;
@@ -75,8 +76,9 @@ export function CloudModelDetailPage() {
 
       return {
         filename: r?.filename || r?.name || "Prediction",
-        isAlreadyClicked: true,
-        isRight: true,
+        createdAt: r?.createdAt,
+        isAlreadyClicked: typeof r?.isCorrect === "boolean",
+        isRight: typeof r?.isCorrect === "boolean" ? r.isCorrect : true,
         predictions: confidence,
         result: percentProbs,
       };
@@ -109,12 +111,13 @@ export function CloudModelDetailPage() {
 
           const newItem: UploadItem = {
             filename: file.name,
+            createdAt: result?.createdAt,
             isAlreadyClicked: false,
             predictions: Number(confidence),
             isRight: false,
             result: percentProbs,
           };
-          setItems((prev) => [...prev, newItem]);
+          setItems((prev) => [newItem, ...prev]);
           setSelectedItem(newItem);
         } catch (err) {
           console.error("Prediction failed", err);
@@ -146,8 +149,6 @@ export function CloudModelDetailPage() {
   }
 
   function handleUpload(files: File[]) {
-    setItems([]);
-    setSelectedItem(null);
     setFiles(files);
   }
 
@@ -169,10 +170,24 @@ export function CloudModelDetailPage() {
     setSelectedItem(item);
   }
 
-  function handleRightWrongClicked(updated: UploadItem) {
-    setItems(
-      items.map((item) => (item.filename === updated.filename ? updated : item))
-    );
+  async function handleRightWrongClicked(updated: UploadItem) {
+    try {
+      if (modelId) {
+        await judgeAiResult({
+          modelId,
+          filename: updated.filename,
+          createdAt: updated.createdAt,
+          isCorrect: updated.isRight,
+        });
+      }
+      setItems(
+        items.map((item) =>
+          item.filename === updated.filename ? updated : item
+        )
+      );
+    } catch (err) {
+      console.error("Failed to persist judgement", err);
+    }
   }
 
   return (
