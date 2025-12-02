@@ -30,7 +30,7 @@ export interface CarLocation {
   carId: string;
   latitude: number;
   longitude: number;
-  lastSeenAt: string; // ISO timestamp
+  lastSeenAt: string;
 }
 
 // ---- IoT Device ----
@@ -55,11 +55,11 @@ export interface Alert {
   carId: string;
   deviceId?: string;
   type: string;
-  alertType?: string; // backend may return alertType instead of type
+  alertType?: string;
   severity: AlertSeverity;
   status: AlertStatus;
-  description?: string; // backend often returns description
-  message?: string; // optional message field from backend
+  description?: string;
+  message?: string;
   confidenceScore: number;
   createdAt: string;
   acknowledgedAt?: string;
@@ -119,6 +119,7 @@ export interface AiModel {
   updatedAt: string;
   accuracy: number; // e.g. 94.2
   deploymentStage: DeploymentStage;
+  results?: any[];
 }
 
 export type AlertCategory =
@@ -132,7 +133,7 @@ export type AlertCategory =
 export interface AlertTypeDef {
   id?: string;
   key?: string;
-  type?: string; // backend may return "type" as primary key
+  type?: string;
   name?: string;
   category?: AlertCategory | "UNKNOWN";
   defaultSeverity?: "INFO" | "WARN" | "CRITICAL";

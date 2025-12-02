@@ -41,6 +41,7 @@ export async function fetchCloudDashboard(): Promise<CloudDashboardData> {
     throw new Error(body?.message || "Failed to load cloud dashboard");
   }
 
+  console.log("[cloudDashboard] raw response body:", body);
   const data = (body?.data ?? {}) as Partial<CloudDashboardData>;
   console.log("Fetched cloud dashboard data:", data);
   return {
@@ -50,6 +51,18 @@ export async function fetchCloudDashboard(): Promise<CloudDashboardData> {
       ? data.alertTypes.map(mapAlertType)
       : [],
     devices: data.devices ?? [],
-    aiModels: data.aiModels ?? [],
+    aiModels: Array.isArray(data.aiModels)
+      ? data.aiModels.map((m: any) => ({
+          id: m.id || m._id || m.name,
+          name: m.name,
+          type: m.type,
+          version: m.version || "v1.0.0",
+          status: m.status || "RUNNING",
+          updatedAt: m.updatedAt || new Date().toISOString(),
+          accuracy: typeof m.accuracy === "number" ? m.accuracy : 0,
+          deploymentStage: m.deploymentStage || "STAGING",
+          results: m.results ?? [],
+        }))
+      : [],
   };
 }

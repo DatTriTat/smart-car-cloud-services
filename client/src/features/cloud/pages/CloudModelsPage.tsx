@@ -27,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import { AddModelDialog } from "../components/AddModelDialog";
 import { EditModelDialog } from "../components/EditModelDialog";
 import { DeleteModelDialog } from "../components/DeleteModelDialog";
-import { toast } from "sonner";
 import { Link, useNavigate } from "react-router";
 import {
   Activity,
@@ -38,6 +37,8 @@ import {
   PenLine,
   Trash2,
 } from "lucide-react";
+import { createAiModel } from "../api/aiModelsApi";
+
 export function CloudModelsPage() {
   const { data, isLoading, error } = useCloudDashboard();
   const queryClient = useQueryClient();
@@ -57,42 +58,28 @@ export function CloudModelsPage() {
     version: string;
     status: AiModel["status"];
   }) {
-    toast.promise<{ name: string }>(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ name: payload.name }), 2000)
-        ),
-      {
-        loading: "Loading...",
-        success: (data) => {
-          const newModel: AiModel = {
-            id: `model-${Date.now()}`,
-            name: payload.name,
-            type: payload.type,
-            version: payload.version,
-            status: payload.status,
-            updatedAt: new Date().toISOString(),
-            accuracy: 0, // e.g. 94.2
-            deploymentStage: "STAGING",
-          };
-
-          queryClient.setQueryData<CloudDashboardData | undefined>(
-            ["cloudDashboard"],
-            (oldData) => {
-              if (!oldData) return oldData;
-              const newData: CloudDashboardData = {
-                ...oldData,
-                aiModels: [...oldData.aiModels, newModel],
-              };
-              return newData;
-            }
-          );
-
-          return `${data.name} has been created`;
-        },
-        error: "Error",
+    (async () => {
+      try {
+        const created = await createAiModel({
+          name: payload.name,
+          type: payload.type,
+          version: payload.version,
+          status: payload.status,
+        });
+        queryClient.setQueryData<CloudDashboardData | undefined>(
+          ["cloudDashboard"],
+          (oldData) =>
+            oldData
+              ? {
+                  ...oldData,
+                  aiModels: [...oldData.aiModels, created],
+                }
+              : oldData
+        );
+      } catch (err) {
+        console.error("Failed to create model", err);
       }
-    );
+    })();
   }
 
   function handleSaveEditedModel(updated: AiModel) {

@@ -1,6 +1,7 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
 import type { AiModel } from "@/domain/types";
+import { predictWithAiModel } from "../api/aiModelsApi";
 import { useCloudDashboard } from "@/features/cloud/hooks/useCloudDashboard";
 import { useNavigate, useParams } from "react-router";
 import { CloudLayout } from "../components/CloudLayout";
@@ -50,26 +51,77 @@ export function CloudModelDetailPage() {
 
   const { data, isLoading, error } = useCloudDashboard();
 
+  // hydrate history from backend results
   useEffect(() => {
-    if (files.length > 0) {
-      setItems(
-        files.map((file) => ({
-          filename: file.name,
-          isAlreadyClicked: false,
-          predictions: Math.random() * 100,
-          isRight: false,
-          result: {
-            alert_sounds: Math.random() * 100,
-            emergency_sirens: Math.random() * 100,
-            environmental_sounds: Math.random() * 100,
-            road_traffic: Math.random() * 100,
-            collision_sounds: Math.random() * 100,
-            human_scream: Math.random() * 100,
-          },
-        }))
+    if (!data || !modelId) return;
+    const model = data.aiModels.find((m: AiModel) => m.id === modelId);
+    if (!model || !Array.isArray(model.results) || model.results.length === 0)
+      return;
+
+    const mapped: UploadItem[] = model.results.map((r: any) => {
+      const probs = (r?.probabilities as Record<string, number>) || {};
+      const prediction =
+        r?.predictedClass ||
+        Object.keys(probs)[0] ||
+        "";
+      const confidenceRaw =
+        typeof r?.confidence === "number"
+          ? r.confidence
+          : probs[prediction] ?? 0;
+      const confidence = confidenceRaw * 100;
+      const percentProbs = Object.fromEntries(
+        Object.entries(probs).map(([k, v]) => [k, v * 100])
       );
-    }
-  }, [files]);
+
+      return {
+        filename: r?.filename || r?.name || "Prediction",
+        isAlreadyClicked: true,
+        isRight: true,
+        predictions: confidence,
+        result: percentProbs,
+      };
+    });
+
+    setItems(mapped);
+    setSelectedItem(mapped[0] || null);
+  }, [data, modelId]);
+
+  useEffect(() => {
+    if (!modelId || files.length === 0) return;
+    // sequentially upload each file and store result
+    (async () => {
+      for (const file of files) {
+        try {
+          const result = await predictWithAiModel(modelId, file);
+          const probabilities =
+            (result?.probabilities as Record<string, number>) || {};
+          const prediction =
+            result?.predictedClass ||
+            Object.keys(probabilities)[0] ||
+            "";
+          const confidence =
+            typeof result?.confidence === "number"
+              ? result.confidence * 100
+              : (probabilities[prediction] ?? 0) * 100;
+          const percentProbs = Object.fromEntries(
+            Object.entries(probabilities).map(([k, v]) => [k, v * 100])
+          );
+
+          const newItem: UploadItem = {
+            filename: file.name,
+            isAlreadyClicked: false,
+            predictions: Number(confidence),
+            isRight: false,
+            result: percentProbs,
+          };
+          setItems((prev) => [...prev, newItem]);
+          setSelectedItem(newItem);
+        } catch (err) {
+          console.error("Prediction failed", err);
+        }
+      }
+    })();
+  }, [files, modelId]);
 
   if (isLoading) return <Loading />;
 
@@ -94,6 +146,8 @@ export function CloudModelDetailPage() {
   }
 
   function handleUpload(files: File[]) {
+    setItems([]);
+    setSelectedItem(null);
     setFiles(files);
   }
 
@@ -277,63 +331,10 @@ function Result({ item }: ResultProps) {
     );
   }
 
-  function getSimulatedPrediction(): {
-    probabilities: Record<string, number>;
-    prediction: string;
-    confidence: number;
-  } {
-    const keys = [
-      "alert_sounds",
-      "emergency_sirens",
-      "environmental_sounds",
-      "road_traffic",
-      "collision_sounds",
-      "human_scream",
-    ];
-
-    // CONFIGURATION
-    // 20 = Very confident model (winner gets ~90%)
-    // 5  = Less confident model (winner gets ~50-60%)
-    const biasStrength = 20;
-
-    // 1. Pick a random "winner" index
-    const dominantIndex = Math.floor(Math.random() * keys.length);
-
-    // 2. Generate weights (Winner gets Random + Bias, others get just Random)
-    const weights = keys.map((_, index) => {
-      return index === dominantIndex
-        ? Math.random() + biasStrength
-        : Math.random();
-    });
-
-    // 3. Calculate Total Weight
-    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-
-    // 4. Normalize to 100% and find the highest
-    const result: Record<string, number> = {};
-    let highestType = "";
-    let highestValue = -1;
-
-    keys.forEach((key, index) => {
-      const probability = (weights[index] / totalWeight) * 100;
-      result[key] = probability;
-
-      // Track the max
-      if (probability > highestValue) {
-        highestValue = probability;
-        highestType = key;
-      }
-    });
-
-    return {
-      probabilities: result,
-      prediction: highestType, // e.g., "emergency_sirens"
-      confidence: highestValue, // e.g., 92.45...
-    };
-  }
-
-    const result = getSimulatedPrediction();
-  const probEntries = Object.entries(result.probabilities as Record<string, number>);
+  const probEntries = Object.entries(item.result as Record<string, number>);
+  const prediction =
+    probEntries.sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+  const confidence = item.predictions;
 
   return (
     <Card>
@@ -345,10 +346,10 @@ function Result({ item }: ResultProps) {
         <Item variant="outline" className="border border-green-500 bg-green-50">
           <ItemContent className="flex flex-col justify-center items-center">
             <ItemTitle className="text-2xl">
-              {capitalize(result.prediction)}
+              {capitalize(prediction)}
             </ItemTitle>
             <ItemDescription className="text-lg text-green-500">
-              {result.confidence.toFixed(1)}% Confidence
+              {confidence.toFixed(1)}% Confidence
             </ItemDescription>
           </ItemContent>
         </Item>

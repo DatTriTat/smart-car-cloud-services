@@ -5,6 +5,7 @@ const AlertType = require("../models/sql/alertType.model");
 const CarService = require("../services/car.service");
 const AlertService = require("../services/alert.service");
 const IoTDevice = require("../models/sql/iotDevice.model");
+const { AiModel } = require("../models/mongo");
 const {
   mapSeverityToThreeLevels,
   mapAlertStatus,
@@ -15,7 +16,6 @@ const {
 
 class CloudDashboardController {
   async getOverview(request, response) {
-    // Cloud team: fetch all cars/alerts (no user scoping)
     const carsResult = await CarService.getCars({ limit: 2000 });
     const cars = toPlain(carsResult?.cars).map((c) => ({
       ...c,
@@ -59,10 +59,28 @@ class CloudDashboardController {
       enabled: t.enabled ?? true,
     }));
 
+    const aiModelsDocs = await AiModel.find().sort({ updatedAt: -1 }).lean();
+    const aiModels = aiModelsDocs.map((m) => ({
+      id: String(m._id),
+      name: m.name,
+      type: m.type,
+      version: m.version,
+      status: m.status || "RUNNING",
+      updatedAt: m.updatedAt,
+      accuracy: 0,
+      deploymentStage: "STAGING",
+      results: Array.isArray(m.results)
+        ? [...m.results].sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        : [],
+    }));
+
     return new OK({
       message: "Cloud overview fetched",
       data: {
-        aiModels: [], // not stored in DB yet
+        aiModels,
         alertTypes,
         alerts,
         cars,

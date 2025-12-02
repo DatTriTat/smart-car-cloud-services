@@ -1,16 +1,36 @@
-import type { AlertTypeDef } from "@/domain/types";
+import type { AlertCategory, AlertTypeDef } from "@/domain/types";
 import { authFetch } from "@/lib/authFetch";
 
-function mapAlertType(dto: any): AlertTypeDef {
+type AlertTypeDto = Partial<AlertTypeDef> & {
+  defaultseverity?: string;
+  category?: AlertCategory | string;
+  enabled?: boolean;
+};
+
+function mapAlertType(dto: AlertTypeDto): AlertTypeDef {
+  const type = dto.type || dto.key;
+  const defaultSeverity: AlertTypeDef["defaultSeverity"] | undefined =
+    dto.defaultSeverity ||
+    (dto.defaultseverity
+      ? (String(
+          dto.defaultseverity
+        ).toUpperCase() as AlertTypeDef["defaultSeverity"])
+      : undefined);
+
+  const categoryRaw = dto.category
+    ? String(dto.category).toUpperCase()
+    : undefined;
+  const category = categoryRaw as AlertCategory | "UNKNOWN" | undefined;
+
   return {
-    id: dto?.type,
-    key: dto?.type,
-    type: dto?.type,
-    name: dto?.name,
-    description: dto?.description,
-    category: dto?.category,
-    defaultSeverity: dto?.defaultSeverity,
-    enabled: dto?.enabled,
+    id: type,
+    key: type,
+    type,
+    name: dto.name,
+    description: dto.description,
+    category,
+    defaultSeverity,
+    enabled: dto.enabled,
   };
 }
 
@@ -54,7 +74,7 @@ export async function updateAlertType(
   }
 ): Promise<AlertTypeDef> {
   const res = await authFetch(`/alert-types/${type}`, {
-    method: "PUT", // single update verb; PATCH not used anymore
+    method: "PUT",
     body: JSON.stringify({
       newType: input.newType,
       name: input.name,
