@@ -38,9 +38,12 @@ import {
   PenLine,
   Trash2,
 } from "lucide-react";
+import { useAuth } from "@/auth/AuthContext";
+
 
 export function CloudModelsPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "";
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const queryClient = useQueryClient();
   const navigate = useNavigate();

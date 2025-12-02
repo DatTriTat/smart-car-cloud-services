@@ -67,7 +67,11 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
                       {formatDate(alert.createdAt)}
                     </TableCell>
                     <TableCell className="font-medium text-slate-700">
-                      {capitalize(alert.type)}
+                      {alert.type
+                        ? capitalize(String(alert.type))
+                        : alert.alertType
+                        ? capitalize(String(alert.alertType))
+                        : "Unknown"}
                     </TableCell>
                     <TableCell>
                       <AlertSeverityBadge severity={alert.severity} />
@@ -76,7 +80,7 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
                       <AlertStatusBadge status={alert.status} />
                     </TableCell>
                     <TableCell className="text-slate-700">
-                      {alert.message}
+                      {alert.description}
                     </TableCell>
                   </TableRow>
                 ))}

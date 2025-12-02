@@ -6,7 +6,9 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  createdAt: string; // ISO timestamp
+  createdAt: string;
+  username?: string;
+  cognitoUsername?: string;
 }
 
 // ---- CAR ----
@@ -53,9 +55,10 @@ export interface Alert {
   carId: string;
   deviceId?: string;
   type: string;
+  alertType?: string; // backend may return alertType instead of type
   severity: AlertSeverity;
   status: AlertStatus;
-  message: string;
+  description?: string; // backend often returns description
   confidenceScore: number;
   createdAt: string;
   acknowledgedAt?: string;

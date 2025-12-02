@@ -43,12 +43,18 @@ export function AlertDetailDialog({
 
           <div>
             <p className="text-xs text-slate-500">Type</p>
-            <p className="font-medium">{capitalize(alert.type)}</p>
+            <p className="font-medium">
+              {alert.type
+                ? capitalize(String(alert.type))
+                : alert.alertType
+                ? capitalize(String(alert.alertType))
+                : "Unknown"}
+            </p>
           </div>
 
           <div>
             <p className="text-xs text-slate-500">Message</p>
-            <p>{alert.message}</p>
+            <p>{alert.description}</p>
           </div>
 
           <div>
