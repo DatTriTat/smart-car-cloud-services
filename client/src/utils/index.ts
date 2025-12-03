@@ -24,6 +24,8 @@ export function formatDate(iso: string) {
   });
 }
 
+export function getAlertTypeChartDatas(alerts: Alert[]) {
+  const alertTypes = new Set(alerts.map((alert) => alert.type));
 export function getChartDatas(alerts: Alert[]) {
   // normalize type, fallback to alert.alertType or "unknown"
   const normalized = alerts.map((alert) => alert.type || (alert as any).alertType || "unknown");
@@ -54,6 +56,32 @@ export function getChartDatas(alerts: Alert[]) {
   };
 }
 
+export function getAlertSeverityChartDatas(alerts: Alert[]) {
+  const alertSeverities = new Set(alerts.map((alert) => alert.severity));
+  const chartData = [...alertSeverities].map((severity) => {
+    return {
+      severity: severity,
+      quantity: alerts.filter((alert) => alert.severity === severity).length,
+      fill: `var(--color-${severity})`,
+    };
+  });
+
+  const chartConfig = Object.fromEntries(
+    [...alertSeverities].map((severity, idx) => [
+      severity,
+      {
+        label: capitalize(severity),
+        color: `var(--chart-${idx + 1})`,
+      },
+    ])
+  ) satisfies ChartConfig;
+
+  return {
+    chartData,
+    chartConfig,
+  };
+}
+
 export function formatPrettyDate(date: Date): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short", // Dec
@@ -67,4 +95,15 @@ export function getLastNDaysRangeLabel(n: number): string {
   const start = new Date();
   start.setDate(end.getDate() - (n - 1));
   return `${formatPrettyDate(start)} - ${formatPrettyDate(end)}`;
+}
+
+export function filterAlertsByDays(alerts: Alert[], days: number): Alert[] {
+  const now = Date.now();
+  const msInDay = 24 * 60 * 60 * 1000;
+  const cutoff = now - days * msInDay;
+
+  return alerts.filter((alert) => {
+    const createdTime = new Date(alert.createdAt).getTime();
+    return createdTime >= cutoff;
+  });
 }

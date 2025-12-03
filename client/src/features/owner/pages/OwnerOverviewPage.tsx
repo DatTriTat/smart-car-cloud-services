@@ -11,7 +11,11 @@ import {
 } from "@/components/ui/card";
 import Loading from "@/components/shared/Loading";
 import Error from "@/components/shared/Error";
-import { capitalize, getLastNDaysRangeLabel } from "@/utils";
+import {
+  capitalize,
+  filterAlertsByDays,
+  getLastNDaysRangeLabel,
+} from "@/utils";
 import {
   Activity,
   Bell,
@@ -22,6 +26,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CarStatusBadge } from "@/components/status/CarStatusBadge";
+import { AlertLineChart, AlertTypeBarChart } from "@/components/shared/Chart";
+import { Alert } from "@/components/ui/alert";
 import { AlertPieChart } from "@/components/shared/Chart";
 import SimpleMap from "@/components/shared/Map";
 import { formatDate } from "@/utils";
@@ -126,11 +132,11 @@ export function OwnerOverviewPage() {
           <div className="grid grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Alert Distribution (Last 7 Days)</CardTitle>
+                <CardTitle>Alert Type Distribution (Last 7 Days)</CardTitle>
                 <CardDescription>{getLastNDaysRangeLabel(7)}</CardDescription>
               </CardHeader>
               <CardContent>
-                <AlertPieChart alerts={alerts} />
+                <AlertTypeBarChart alerts={filterAlertsByDays(alerts, 7)} />
               </CardContent>
               <CardFooter className="flex-col gap-2 text-sm">
                 <div className="text-muted-foreground leading-none">
@@ -141,11 +147,43 @@ export function OwnerOverviewPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Alert Distribution (Last 30 Days)</CardTitle>
+                <CardTitle>Alert Type Distribution (Last 30 Days)</CardTitle>
                 <CardDescription>{getLastNDaysRangeLabel(30)}</CardDescription>
               </CardHeader>
               <CardContent>
-                <AlertPieChart alerts={alerts} />
+                <AlertTypeBarChart alerts={filterAlertsByDays(alerts, 30)} />
+              </CardContent>
+              <CardFooter className="flex-col gap-2 text-sm">
+                <div className="text-muted-foreground leading-none">
+                  Showing total alerts for the last 30 days
+                </div>
+              </CardFooter>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Alert Volume Over Time (Last 7 Days)</CardTitle>
+                <CardDescription>{getLastNDaysRangeLabel(7)}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AlertLineChart alerts={filterAlertsByDays(alerts, 7)} />
+              </CardContent>
+              <CardFooter className="flex-col gap-2 text-sm">
+                <div className="text-muted-foreground leading-none">
+                  Showing total alerts for the last 7 days
+                </div>
+              </CardFooter>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Alert Volume Over Time (Last 30 Days)</CardTitle>
+                <CardDescription>{getLastNDaysRangeLabel(30)}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AlertLineChart alerts={filterAlertsByDays(alerts, 30)} />
               </CardContent>
               <CardFooter className="flex-col gap-2 text-sm">
                 <div className="text-muted-foreground leading-none">
