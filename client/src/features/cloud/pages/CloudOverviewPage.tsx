@@ -1,7 +1,7 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
 import type { Alert, IoTDevice } from "@/domain/types";
-import { useOwnerDashboard } from "@/features/owner/hooks/useOwnerDashboard";
+import { useCloudDashboard } from "@/features/cloud/hooks/useCloudDashboard";
 import { CloudLayout } from "../components/CloudLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,12 +14,9 @@ import {
 } from "@/components/ui/table";
 import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
 import { capitalize } from "@/utils";
-import { useAuth } from "@/auth/AuthContext";
 
 export function CloudOverviewPage() {
-  const { user } = useAuth();
-  const ownerId = user?.id || "";
-  const { data, isLoading, error } = useOwnerDashboard(ownerId);
+  const { data, isLoading, error } = useCloudDashboard();
 
   if (isLoading) return <Loading />;
 

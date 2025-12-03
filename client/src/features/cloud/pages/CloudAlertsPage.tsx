@@ -1,7 +1,7 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
 import type { Alert, Car } from "@/domain/types";
-import { useOwnerDashboard } from "@/features/owner/hooks/useOwnerDashboard";
+import { useCloudDashboard } from "@/features/cloud/hooks/useCloudDashboard";
 import { useState } from "react";
 import { CloudLayout } from "../components/CloudLayout";
 import { type AlertSeverityFilter } from "@/features/owner/components/AlertsFilterBar";
@@ -18,12 +18,9 @@ import {
 } from "@/components/ui/table";
 import { AlertSeverityBadge } from "@/components/status/AlertSeverityBadge";
 import { capitalize } from "@/utils";
-import { useAuth } from "@/auth/AuthContext";
 
 export function CloudAlertsPage() {
-  const { user } = useAuth();
-  const ownerId = user?.id || "";
-  const { data, isLoading, error } = useOwnerDashboard(ownerId);
+  const { data, isLoading, error } = useCloudDashboard();
   const [severityFilter, setSeverityFilter] =
     useState<AlertSeverityFilter>("ALL");
   const [search, setSearch] = useState("");
@@ -31,7 +28,14 @@ export function CloudAlertsPage() {
   if (isLoading) return <Loading />;
   if (error || !data) return <Error error={error} />;
 
-  const { cars, alerts } = data;
+  const { cars, alerts, alertTypes } = data;
+
+  const severityByType = new Map<string, string>();
+  alertTypes.forEach((t) => {
+    if (t.type && t.defaultSeverity) {
+      severityByType.set(t.type, t.defaultSeverity);
+    }
+  });
 
   function getAlerts() {
     let result = alerts as Alert[];
@@ -49,8 +53,12 @@ export function CloudAlertsPage() {
           : "";
 
         return (
-          alert.description.toLowerCase().includes(term) ||
-          alert.type.toLowerCase().includes(term) ||
+          (alert.message || "").toLowerCase().includes(term) ||
+          (alert.description || "").toLowerCase().includes(term) ||
+          (alert.type || (alert as any).alertType || "")
+            .toString()
+            .toLowerCase()
+            .includes(term) ||
           carText.includes(term)
         );
       });
@@ -60,12 +68,6 @@ export function CloudAlertsPage() {
   }
 
   const filteredAlerts = getAlerts();
-
-  const totalCritical = alerts.filter(
-    (a: Alert) => a.severity === "CRITICAL"
-  ).length;
-  const totalWarn = alerts.filter((a: Alert) => a.severity === "WARN").length;
-  const totalInfo = alerts.filter((a: Alert) => a.severity === "INFO").length;
 
   return (
     <CloudLayout>
@@ -183,13 +185,23 @@ export function CloudAlertsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-slate-700">
-                          {capitalize(alert.type)}
+                          {capitalize(
+                            (alert.type ||
+                              (alert as any).alertType ||
+                              "Unknown") as string
+                          )}
                         </TableCell>
                         <TableCell className="text-slate-700">
                           {alert.description}
                         </TableCell>
                         <TableCell className="text-right">
-                          <AlertSeverityBadge severity={alert.severity} />
+                          <AlertSeverityBadge
+                            severity={
+                              (severityByType.get(
+                                alert.type || (alert as any).alertType
+                              ) as any) || alert.severity
+                            }
+                          />
                         </TableCell>
                       </TableRow>
                     );

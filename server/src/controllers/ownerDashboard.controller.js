@@ -14,6 +14,7 @@ const {
   mapAlertStatus,
   mapDeviceStatus,
   mapSeverityToThreeLevels,
+  mapCarStatus,
   toPlain,
 } = require("../services/status.helper");
 
@@ -53,7 +54,10 @@ class OwnerDashboardController {
     const carsResult = await CarService.getCars({
       userId,
     });
-    const cars = toPlain(carsResult?.cars);
+    const cars = toPlain(carsResult?.cars).map((c) => ({
+      ...c,
+      status: mapCarStatus(c.status),
+    }));
     const carIds = cars.map((c) => c.id);
 
     const alertsResult = await AlertService.getAlerts({
@@ -84,10 +88,28 @@ class OwnerDashboardController {
         )
       : null;
 
-    const alertTypes = await AlertType.findAll({
+    const alertTypesRaw = await AlertType.findAll({
       raw: true,
-      attributes: ["type"],
+      attributes: [
+        "type",
+        "name",
+        "description",
+        "defaultseverity",
+        "category",
+        "enabled",
+      ],
     });
+    const alertTypes = alertTypesRaw.map((t) => ({
+      type: t.type,
+      name: t.name,
+      description: t.description,
+      defaultSeverity: t.defaultseverity
+        ? String(t.defaultseverity).toUpperCase()
+        : "INFO",
+      category: t.category ? String(t.category).toUpperCase() : "UNKNOWN",
+      enabled: t.enabled ?? true,
+    }));
+
     const carLocations = await getLatestLocations(carIds);
 
     const defaultSubscription = {

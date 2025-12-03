@@ -16,15 +16,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Alert } from "@/domain/types";
+import type { Alert, AlertTypeDef, AlertSeverity } from "@/domain/types";
 import { capitalize, formatDate } from "@/utils";
 
 interface AlertsSectionProps {
   alerts: Alert[];
+  alertTypes?: AlertTypeDef[];
   onSelectAlert: (alert: Alert) => void;
 }
 
-export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
+export function AlertsSection({
+  alerts,
+  alertTypes = [],
+  onSelectAlert,
+}: AlertsSectionProps) {
+  const severityByType = new Map<string, string>();
+  alertTypes.forEach((t) => {
+    if (t.type && t.defaultSeverity) {
+      severityByType.set(t.type, t.defaultSeverity);
+    }
+  });
+
   const sortedAlerts = alerts
     .slice()
     .sort(
@@ -80,7 +92,13 @@ export function AlertsSection({ alerts, onSelectAlert }: AlertsSectionProps) {
                         : "Unknown"}
                     </TableCell>
                     <TableCell>
-                      <AlertSeverityBadge severity={alert.severity} />
+                      <AlertSeverityBadge
+                        severity={
+                          (severityByType.get(
+                            alert.type || (alert as any).alertType
+                          ) as AlertSeverity) || alert.severity
+                        }
+                      />
                     </TableCell>
                     <TableCell>
                       <AlertStatusBadge status={alert.status} />

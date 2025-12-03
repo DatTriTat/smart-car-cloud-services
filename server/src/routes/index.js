@@ -14,5 +14,6 @@ router.use("/ml", require("./ml"));
 router.use("/owner", require("./owner"));
 router.use("/iot", require("./iot"));
 router.use("/cloud", require("./cloud"));
+router.use("/ai-models", require("./aiModel"));
 
 module.exports = router;

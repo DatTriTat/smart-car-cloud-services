@@ -9,6 +9,7 @@ const {
   mapAlertStatus,
   mapDeviceStatus,
   mapSeverityToThreeLevels,
+  mapCarStatus,
   toPlain,
 } = require("../services/status.helper");
 
@@ -21,7 +22,10 @@ class IotDashboardController {
         const scopedUserId = isIotTeam ? undefined : userId;
 
         const carsResult = await CarService.getCars({userId: scopedUserId});
-        const cars = toPlain(carsResult?.cars);
+        const cars = toPlain(carsResult?.cars).map((c) => ({
+            ...c,
+            status: mapCarStatus(c.status),
+        }));
 
         const where = {};
         if (scopedUserId) where.userId = scopedUserId;
