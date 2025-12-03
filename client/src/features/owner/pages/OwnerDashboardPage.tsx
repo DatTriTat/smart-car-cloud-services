@@ -128,14 +128,27 @@ export function OwnerDashboardPage() {
           (device) => device.carId === selectedCarId
         );
 
+        const severityByType = new Map<string, string>();
+        alertTypes.forEach((t) => {
+          if (t.type && t.defaultSeverity) {
+            severityByType.set(t.type.toLowerCase(), t.defaultSeverity);
+          }
+        });
+
+        const resolveSeverity = (alert: Alert) => {
+          const key = (alert.alertType || alert.type || "").toLowerCase();
+          return (severityByType.get(key) as Alert["severity"]) || alert.severity;
+        };
+
         const totalAlerts = carAlerts.length;
         const criticalAlerts = carAlerts.filter(
-          (a: Alert) => a.severity === "CRITICAL"
+          (a: Alert) => resolveSeverity(a) === "CRITICAL"
         ).length;
 
         const filteredAlerts = carAlerts.filter((alert) => {
           const severityOk =
-            severityFilter === "ALL" || alert.severity === severityFilter;
+            severityFilter === "ALL" ||
+            resolveSeverity(alert) === severityFilter;
 
           const query = alertSearch.trim().toLowerCase();
           if (!query) return severityOk;

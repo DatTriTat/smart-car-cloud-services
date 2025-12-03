@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.get("", asyncErrorHandler(AiModelController.list));
 router.post("", asyncErrorHandler(AiModelController.create));
+router.patch("/:id", asyncErrorHandler(AiModelController.update));
 router.post(
   "/:id/predict",
   upload.single("file"),

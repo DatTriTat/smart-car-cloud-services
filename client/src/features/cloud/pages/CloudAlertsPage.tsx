@@ -33,7 +33,8 @@ export function CloudAlertsPage() {
   const severityByType = new Map<string, string>();
   alertTypes.forEach((t) => {
     if (t.type && t.defaultSeverity) {
-      severityByType.set(t.type, t.defaultSeverity);
+      const key = String(t.type).toLowerCase();
+      severityByType.set(key, t.defaultSeverity);
     }
   });
 
@@ -41,7 +42,13 @@ export function CloudAlertsPage() {
     let result = alerts as Alert[];
 
     if (severityFilter !== "ALL") {
-      result = result.filter((alert) => alert.severity === severityFilter);
+      result = result.filter((alert) => {
+        const mapped =
+          severityByType.get(
+            String(alert.type || (alert as any).alertType || "").toLowerCase()
+          ) || alert.severity;
+        return mapped === severityFilter;
+      });
     }
 
     const term = search.trim().toLowerCase();
@@ -194,18 +201,20 @@ export function CloudAlertsPage() {
                         <TableCell className="text-slate-700">
                           {alert.description}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <AlertSeverityBadge
-                            severity={
-                              (severityByType.get(
-                                alert.type || (alert as any).alertType
-                              ) as any) || alert.severity
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                    <TableCell className="text-right">
+                      <AlertSeverityBadge
+                        severity={
+                          (severityByType.get(
+                            String(
+                              alert.type || (alert as any).alertType || ""
+                            ).toLowerCase()
+                          ) as any) || alert.severity
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
                 </TableBody>
               </Table>
             )}

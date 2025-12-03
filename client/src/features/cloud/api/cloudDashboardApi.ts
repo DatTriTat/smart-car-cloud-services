@@ -59,7 +59,15 @@ export async function fetchCloudDashboard(): Promise<CloudDashboardData> {
           version: m.version || "v1.0.0",
           status: m.status || "RUNNING",
           updatedAt: m.updatedAt || new Date().toISOString(),
-          accuracy: typeof m.accuracy === "number" ? m.accuracy : 0,
+          accuracy: (() => {
+            const results = Array.isArray(m.results) ? m.results : [];
+            const total = results.length;
+            const correct = results.filter(
+              (r: any) => r && r.isCorrect === true
+            ).length;
+            if (total === 0) return 0;
+            return (correct / total) * 100;
+          })(),
           deploymentStage: m.deploymentStage || "STAGING",
           results: m.results ?? [],
         }))

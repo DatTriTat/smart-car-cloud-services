@@ -12,6 +12,23 @@ class AiModelController {
     return new OK({ message: "AI models fetched", data: models }).send(res);
   }
 
+  async update(req, res) {
+    const { id } = req.params;
+    const { name, type, version, status } = req.body || {};
+
+    const model = await AiModel.findById(id);
+    if (!model) throw new NotFoundError("Model not found");
+
+    if (name) model.name = name;
+    if (type) model.type = type;
+    if (version) model.version = version;
+    if (status) model.status = status;
+    model.updatedAt = new Date();
+
+    await model.save();
+    return new OK({ message: "AI model updated", data: model }).send(res);
+  }
+
   async create(req, res) {
     const { name, type, version, status } = req.body || {};
     if (!name || !type) {

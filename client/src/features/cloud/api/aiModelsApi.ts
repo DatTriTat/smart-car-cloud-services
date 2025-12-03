@@ -3,6 +3,10 @@ import { authFetch } from "@/lib/authFetch";
 import { getApiBaseUrl } from "@/lib/apiConfig";
 
 function mapModel(dto: any): AiModel {
+  const results = Array.isArray(dto?.results) ? dto.results : [];
+  const total = results.length;
+  const correct = results.filter((r: any) => r && r.isCorrect === true).length;
+  const computedAccuracy = total === 0 ? 0 : (correct / total) * 100;
   return {
     id: dto?.id || dto?._id || dto?.name,
     name: dto?.name || "",
@@ -10,9 +14,10 @@ function mapModel(dto: any): AiModel {
     version: dto?.version || "v1.0.0",
     status: dto?.status || "RUNNING",
     updatedAt: dto?.updatedAt || new Date().toISOString(),
-    accuracy: typeof dto?.accuracy === "number" ? dto.accuracy : 0,
+    accuracy:
+      typeof dto?.accuracy === "number" ? dto.accuracy : computedAccuracy,
     deploymentStage: dto?.deploymentStage || "STAGING",
-    results: dto?.results ?? [],
+    results,
   };
 }
 
@@ -53,6 +58,21 @@ export async function predictWithAiModel(
     throw new Error(body?.message || "Failed to run prediction");
   }
   return body.data;
+}
+
+export async function updateAiModel(
+  id: string,
+  payload: Partial<Pick<AiModel, "name" | "type" | "version" | "status">>
+): Promise<AiModel> {
+  const res = await authFetch(`/ai-models/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(body?.message || "Failed to update AI model");
+  }
+  return mapModel(body.data);
 }
 
 export async function judgeAiResult(payload: {

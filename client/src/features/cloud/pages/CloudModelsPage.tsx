@@ -37,7 +37,7 @@ import {
   PenLine,
   Trash2,
 } from "lucide-react";
-import { createAiModel } from "../api/aiModelsApi";
+import { createAiModel, updateAiModel } from "../api/aiModelsApi";
 
 export function CloudModelsPage() {
   const { data, isLoading, error } = useCloudDashboard();
@@ -83,22 +83,31 @@ export function CloudModelsPage() {
   }
 
   function handleSaveEditedModel(updated: AiModel) {
-    queryClient.setQueryData<CloudDashboardData | undefined>(
-      ["cloudDashboard"],
-      (oldData) => {
-        if (!oldData) return oldData;
+    (async () => {
+      try {
+        const saved = await updateAiModel(updated.id, {
+          name: updated.name,
+          type: updated.type,
+          version: updated.version,
+          status: updated.status,
+        });
 
-        const newModels = oldData.aiModels.map((model) =>
-          model.id === updated.id ? updated : model
+        queryClient.setQueryData<CloudDashboardData | undefined>(
+          ["cloudDashboard"],
+          (oldData) =>
+            oldData
+              ? {
+                  ...oldData,
+                  aiModels: oldData.aiModels.map((model) =>
+                    model.id === saved.id ? saved : model
+                  ),
+                }
+              : oldData
         );
-        const newData: CloudDashboardData = {
-          ...oldData,
-          aiModels: newModels,
-        };
-
-        return newData;
+      } catch (err) {
+        console.error("Failed to update model", err);
       }
-    );
+    })();
   }
 
   function handleDeleteModel(modelId: string) {

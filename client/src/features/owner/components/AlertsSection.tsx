@@ -33,16 +33,9 @@ export function AlertsSection({
   const severityByType = new Map<string, string>();
   alertTypes.forEach((t) => {
     if (t.type && t.defaultSeverity) {
-      severityByType.set(t.type, t.defaultSeverity);
+      severityByType.set(t.type.toLowerCase(), t.defaultSeverity);
     }
   });
-
-  const sortedAlerts = alerts
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
 
   return (
     <Card>
@@ -95,8 +88,9 @@ export function AlertsSection({
                       <AlertSeverityBadge
                         severity={
                           (severityByType.get(
-                            alert.type || (alert as any).alertType
-                          ) as AlertSeverity) || (alert.severity as AlertSeverity)
+                            (alert.alertType || alert.type || "").toLowerCase()
+                          ) as AlertSeverity) ||
+                          (alert.severity as AlertSeverity)
                         }
                       />
                     </TableCell>
