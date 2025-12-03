@@ -13,17 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { AddDeviceDialog } from "../components/AddDeviceDialog";
 import { EditDeviceDialog } from "../components/EditDeviceDialog";
 import { DeleteDeviceDialog } from "../components/DeleteDeviceDialog";
@@ -51,6 +43,8 @@ export function IoTCarDevicesPage() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingDevice, setDeletingDevice] = useState<IoTDevice | null>(null);
+  const [carSearch, setCarSearch] = useState("");
+  const [showCarList, setShowCarList] = useState(false);
 
   useEffect(() => {
     if (!selectedCarId && data && data.cars.length > 0) {
@@ -100,6 +94,15 @@ export function IoTCarDevicesPage() {
   const selectedCar: Car | undefined = cars.find((c) => c.id === selectedCarId);
 
   const carDevices = data.devices.filter((d) => d.carId === selectedCarId);
+  const filteredCars = cars.filter((car) => {
+    const term = carSearch.trim().toLowerCase();
+    if (!term) return true;
+    return (
+      car.make.toLowerCase().includes(term) ||
+      car.model.toLowerCase().includes(term) ||
+      car.vin.toLowerCase().includes(term)
+    );
+  });
 
   return (
     <IoTLayout>
@@ -114,26 +117,55 @@ export function IoTCarDevicesPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 w-full max-w-md relative">
             <label className="text-sm text-slate-600">Current Car</label>
-            <Select
-              value={selectedCarId}
-              onValueChange={(value) => setSelectedCarId(value)}
-            >
-              <SelectTrigger className="w-[300px] border border-slate-400 bg-white">
-                <SelectValue placeholder="Select Your Vehicle" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Your Vehicle</SelectLabel>
-                  {cars.map((car) => (
-                    <SelectItem key={car.id} value={car.id}>
-                      {car.make} {car.model} ({car.vin})
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <Input
+              placeholder="Search by make, model, or VIN"
+              value={carSearch}
+              onFocus={() => setShowCarList(true)}
+              onChange={(e) => {
+                setCarSearch(e.target.value);
+                setShowCarList(true);
+              }}
+            />
+            <div className="text-xs text-slate-500">
+              {filteredCars.find((c) => c.id === selectedCarId)
+                ? `${filteredCars
+                    .find((c) => c.id === selectedCarId)!
+                    .make} ${
+                    filteredCars.find((c) => c.id === selectedCarId)!.model
+                  } (${filteredCars.find((c) => c.id === selectedCarId)!.vin})`
+                : "No car selected"}
+            </div>
+            {showCarList && (
+              <div className="absolute top-full mt-1 w-full max-h-48 overflow-y-auto rounded-md border border-slate-300 bg-white shadow-lg z-10">
+                {filteredCars.map((car) => {
+                  const isActive = car.id === selectedCarId;
+                  return (
+                    <button
+                      key={car.id}
+                      onClick={() => {
+                        setSelectedCarId(car.id);
+                        setShowCarList(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-100 ${
+                        isActive ? "bg-slate-900 text-white" : "text-slate-700"
+                      }`}
+                    >
+                      <div className="font-medium">
+                        {car.make} {car.model}
+                      </div>
+                      <div className="text-xs opacity-80">{car.vin}</div>
+                    </button>
+                  );
+                })}
+                {filteredCars.length === 0 && (
+                  <div className="px-3 py-2 text-sm text-slate-500">
+                    No matching cars
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
