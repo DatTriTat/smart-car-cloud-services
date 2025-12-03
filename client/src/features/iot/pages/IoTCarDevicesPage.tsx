@@ -55,8 +55,9 @@ export function IoTCarDevicesPage() {
   async function handleAddDevice(deviceWithoutId: Omit<IoTDevice, "id">) {
     try {
       const created = await createIotDevice(deviceWithoutId);
-      queryClient.setQueryData<IotDashboardData | undefined>(["iotDashboard"], (oldData) =>
-        oldData ? addDevice(oldData, created) : oldData
+      queryClient.setQueryData<IotDashboardData | undefined>(
+        ["iotDashboard"],
+        (oldData) => (oldData ? addDevice(oldData, created) : oldData)
       );
     } catch (err) {
       console.error("Failed to create device", err);
@@ -66,8 +67,9 @@ export function IoTCarDevicesPage() {
   async function handleSaveEditedDevice(update: IoTDevice) {
     try {
       const updated = await updateIotDevice(update.id, update);
-      queryClient.setQueryData<IotDashboardData | undefined>(["iotDashboard"], (oldData) =>
-        oldData ? updateDevice(oldData, updated) : oldData
+      queryClient.setQueryData<IotDashboardData | undefined>(
+        ["iotDashboard"],
+        (oldData) => (oldData ? updateDevice(oldData, updated) : oldData)
       );
     } catch (err) {
       console.error("Failed to update device", err);
@@ -77,8 +79,9 @@ export function IoTCarDevicesPage() {
   async function handleDeleteDevice(deviceId: string) {
     try {
       const deletedId = await deleteIotDevice(deviceId);
-      queryClient.setQueryData<IotDashboardData | undefined>(["iotDashboard"], (oldData) =>
-        oldData ? deleteDevice(oldData, deletedId) : oldData
+      queryClient.setQueryData<IotDashboardData | undefined>(
+        ["iotDashboard"],
+        (oldData) => (oldData ? deleteDevice(oldData, deletedId) : oldData)
       );
     } catch (err) {
       console.error("Failed to delete device", err);
@@ -128,15 +131,7 @@ export function IoTCarDevicesPage() {
                 setShowCarList(true);
               }}
             />
-            <div className="text-xs text-slate-500">
-              {filteredCars.find((c) => c.id === selectedCarId)
-                ? `${filteredCars
-                    .find((c) => c.id === selectedCarId)!
-                    .make} ${
-                    filteredCars.find((c) => c.id === selectedCarId)!.model
-                  } (${filteredCars.find((c) => c.id === selectedCarId)!.vin})`
-                : "No car selected"}
-            </div>
+
             {showCarList && (
               <div className="absolute top-full mt-1 w-full max-h-48 overflow-y-auto rounded-md border border-slate-300 bg-white shadow-lg z-10">
                 {filteredCars.map((car) => {
