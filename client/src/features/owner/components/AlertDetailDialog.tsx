@@ -43,15 +43,21 @@ export function AlertDetailDialog({
 
         <Separator />
 
-        <div className="flex flex-col gap-4">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Type</p>
-            <p className="font-medium">{capitalize(alert.type)}</p>
+        <div className="space-y-3 text-sm text-slate-700 mt-2">
+          <div>
+            <p className="text-xs text-slate-500">Type</p>
+            <p className="font-medium">
+              {alert.type
+                ? capitalize(String(alert.type))
+                : alert.alertType
+                ? capitalize(String(alert.alertType))
+                : "Unknown"}
+            </p>
           </div>
 
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Message</p>
-            <p className="font-medium">{alert.message}</p>
+          <div>
+            <p className="text-xs text-slate-500">Message</p>
+            <p>{alert.description}</p>
           </div>
 
           <div className="space-y-1">

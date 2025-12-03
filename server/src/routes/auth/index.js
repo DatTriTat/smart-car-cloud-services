@@ -13,9 +13,15 @@ router.post("/signup", asyncErrorHandler(AuthController.signup));
 // User login
 router.post("/login", asyncErrorHandler(AuthController.login));
 
-// Get user profile
+// Confirm sign up
+router.post("/confirm", asyncErrorHandler(AuthController.confirm));
+
+// Resend confirmation code
+router.post("/resend", asyncErrorHandler(AuthController.resend));
+
+// Get current user profile
 router.get(
-  "/profile/:username",
+  "/profile",
   authenticate,
   asyncErrorHandler(AuthController.getProfile)
 );
@@ -25,6 +31,12 @@ router.patch(
   "/role/:username",
   authenticate,
   asyncErrorHandler(AuthController.updateRole)
+);
+
+// Refresh tokens
+router.post(
+  "/refresh",
+  asyncErrorHandler(AuthController.refresh)
 );
 
 module.exports = router;

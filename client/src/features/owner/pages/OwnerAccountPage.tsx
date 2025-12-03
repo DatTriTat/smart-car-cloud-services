@@ -25,10 +25,11 @@ import {
   updateChannel,
   updateSubcriptionPlan,
 } from "../api/ownerDashboardMutations";
-import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/auth/AuthContext";
 
 export function OwnerAccountPage() {
-  const ownerId = "u-owner-1";
+  const { user } = useAuth();
+  const ownerId = user?.id || "me";
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useOwnerDashboard(ownerId);
   const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
@@ -73,10 +74,20 @@ export function OwnerAccountPage() {
 
   if (error || !data) return <Error error={error} />;
 
-  const { owner, subscription } = data;
+  const { owner, cars, subscription, devices, alerts } = data;
+  const displayName = user?.name;
+  const displayEmail = user?.email;
+
+  const totalCars = cars.length;
+  const totalDevices = devices.length;
+  const totalAlerts = alerts.length;
+  const criticalAlerts = alerts.filter((a) => a.severity === "CRITICAL").length;
 
   return (
-    <OwnerLayout>
+    <OwnerLayout
+      cars={cars}
+      ownerName={owner?.username || owner?.cognitoUsername}
+    >
       {() => (
         <div className="space-y-4">
           {/* Account info */}
@@ -85,15 +96,14 @@ export function OwnerAccountPage() {
               <CardTitle>Account</CardTitle>
               <CardDescription>Personal information</CardDescription>
             </CardHeader>
-            <Separator />
-            <CardContent className="space-y-3">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-medium">{owner.name}</p>
+            <CardContent className="space-y-3 text-slate-700">
+              <div>
+                <p className="text-slate-500">Name</p>
+                <p className="font-medium">{displayName}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{owner.email}</p>
+              <div>
+                <p className="text-slate-500">Email</p>
+                <p className="font-medium">{displayEmail || "N/A"}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Current Plan</p>
