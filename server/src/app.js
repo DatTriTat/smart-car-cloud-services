@@ -76,7 +76,7 @@ const initMongoDB = async () => {
 
 // Initialize all databases
 (async () => {
-  logger.info("Initializing databases...");
+  logger.info("Initializing databases...newest");
   await initPostgreSQL();
   await initMongoDB();
   logger.info("Database initialization complete");
