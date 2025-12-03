@@ -1,5 +1,5 @@
 import type { ChartConfig } from "@/components/ui/chart";
-import type { Alert } from "@/domain/types";
+import type { Alert, AlertTypeDef } from "@/domain/types";
 
 export function capitalize(alertType: string | undefined | null) {
   if (!alertType) return "";
@@ -89,22 +89,51 @@ export function getChartDatas(alerts: Alert[]) {
   };
 }
 
-export function getAlertSeverityChartDatas(alerts: Alert[]) {
-  const alertSeverities = new Set(alerts.map((alert) => alert.severity));
-  const chartData = [...alertSeverities].map((severity) => {
-    return {
-      severity: severity,
-      quantity: alerts.filter((alert) => alert.severity === severity).length,
-      fill: `var(--color-${severity})`,
-    };
+export function getAlertSeverityChartDatas(
+  alerts: Alert[],
+  alertTypes: AlertTypeDef[] = []
+) {
+  const severityPalette: Record<string, string> = {
+    CRITICAL: "#ef4444", // red
+    WARN: "#f59e0b", // amber
+    INFO: "#3b82f6", // blue
+  };
+
+  const severityByType = new Map<string, string>();
+  alertTypes.forEach((t, idx) => {
+    if (!t.type || !t.defaultSeverity) return;
+    severityByType.set(String(t.type).toLowerCase(), t.defaultSeverity);
+    severityByType.set(
+      String(t.type).toUpperCase(),
+      t.defaultSeverity
+    );
   });
 
-  const chartConfig = Object.fromEntries(
-    [...alertSeverities].map((severity, idx) => [
+  const severityCounts = new Map<string, number>();
+  alerts.forEach((alert) => {
+    const key = String(alert.alertType || alert.type || "").toLowerCase();
+    const mappedSeverity = severityByType.get(key);
+    const severity = mappedSeverity || alert.severity;
+    if (!severity) return;
+    severityCounts.set(severity, (severityCounts.get(severity) || 0) + 1);
+  });
+
+  const chartData = Array.from(severityCounts.entries()).map(
+    ([severity, count], idx) => ({
       severity,
+      quantity: count,
+      fill:
+        severityPalette[severity] || `var(--chart-${idx + 1})`,
+    })
+  );
+
+  const chartConfig = Object.fromEntries(
+    chartData.map((item, idx) => [
+      item.severity,
       {
-        label: capitalize(severity),
-        color: `var(--chart-${idx + 1})`,
+        label: capitalize(item.severity),
+        color:
+          severityPalette[item.severity] || `var(--chart-${idx + 1})`,
       },
     ])
   ) satisfies ChartConfig;

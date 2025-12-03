@@ -166,7 +166,10 @@ export function OwnerOverviewPage() {
                 <CardDescription>{getLastNDaysRangeLabel(7)}</CardDescription>
               </CardHeader>
               <CardContent>
-                <AlertLineChart alerts={filterAlertsByDays(alerts, 7)} />
+                <AlertLineChart
+                  alerts={filterAlertsByDays(alerts, 7)}
+                  alertTypes={data.alertTypes}
+                />
               </CardContent>
               <CardFooter className="flex-col gap-2 text-sm">
                 <div className="text-muted-foreground leading-none">
@@ -181,7 +184,10 @@ export function OwnerOverviewPage() {
                 <CardDescription>{getLastNDaysRangeLabel(30)}</CardDescription>
               </CardHeader>
               <CardContent>
-                <AlertLineChart alerts={filterAlertsByDays(alerts, 30)} />
+                <AlertLineChart
+                  alerts={filterAlertsByDays(alerts, 30)}
+                  alertTypes={data.alertTypes}
+                />
               </CardContent>
               <CardFooter className="flex-col gap-2 text-sm">
                 <div className="text-muted-foreground leading-none">

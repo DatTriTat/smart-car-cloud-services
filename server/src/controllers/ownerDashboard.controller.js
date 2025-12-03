@@ -5,6 +5,7 @@ const CarService = require("../services/car.service");
 const AlertService = require("../services/alert.service");
 const SubscriptionService = require("../services/subscription.service");
 const ServiceConfigurationService = require("../services/serviceConfiguration.service");
+const ServiceConfiguration = require("../models/sql/serviceConfiguration.model");
 const AlertType = require("../models/sql/alertType.model");
 const IoTDevice = require("../models/sql/iotDevice.model");
 const CarTracking = require("../models/sql/carTracking.model");
@@ -82,11 +83,18 @@ class OwnerDashboardController {
       (await SubscriptionService.getSubscriptions({ userId, limit: 1 }))
         ?.subscriptions?.[0] || null;
 
-    const serviceConfig = userId
-      ? await ServiceConfigurationService.getConfiguration(userId).catch(
-          () => null
-        )
-      : null;
+    let serviceConfig = null;
+    if (userId) {
+      const [cfg] = await ServiceConfiguration.findOrCreate({
+        where: { userId },
+        defaults: {
+          userId,
+          alertTypes: [],
+          notificationMethods: [],
+        },
+      });
+      serviceConfig = cfg.toJSON();
+    }
 
     const alertTypesRaw = await AlertType.findAll({
       raw: true,
@@ -112,6 +120,22 @@ class OwnerDashboardController {
 
     const carLocations = await getLatestLocations(carIds);
 
+    const enabledSet = new Set(
+      Array.isArray(serviceConfig?.alertTypes)
+        ? serviceConfig.alertTypes.map((t) => String(t).toLowerCase())
+        : []
+    );
+
+    const carServiceConfigs = cars.map((car) => ({
+      carId: car.id,
+      services: alertTypes.map((t) => ({
+        key: t.type.toUpperCase(),
+        label: t.name || t.type,
+        description: t.description || "",
+        enabled: enabledSet.size > 0 ? enabledSet.has(t.type) : true,
+      })),
+    }));
+
     const defaultSubscription = {
       planId: "BASIC",
       planName: "Basic",
@@ -127,7 +151,7 @@ class OwnerDashboardController {
         cars,
         alerts,
         devices: plainDevices,
-        carServiceConfigs: serviceConfig ? [serviceConfig] : [],
+        carServiceConfigs,
         subscription: subscription || defaultSubscription,
         carLocations,
         aiModels: [],
@@ -141,40 +165,68 @@ class OwnerDashboardController {
   async upsertDashboard(req, res) {
     const userId = req.body?.owner?.id;
     const subPayload = req.body?.subscription;
+    const servicePayload =
+      Array.isArray(req.body?.carServiceConfigs) &&
+      req.body.carServiceConfigs.length > 0
+        ? req.body.carServiceConfigs[0]?.services || []
+        : null;
 
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
     }
-    if (!subPayload) {
-      return res.status(400).json({ message: "Missing subscription payload" });
-    }
 
     try {
-      const existing =
-        (await SubscriptionService.getSubscriptions({ userId, limit: 1 }))
-          ?.subscriptions?.[0] || null;
-      const updates = {
-        planId: subPayload.planId,
-        planName: subPayload.planName,
-        pricePerMonth: subPayload.pricePerMonth,
-        notificationTypes: Array.isArray(subPayload.notificationPreferences)
-          ? subPayload.notificationPreferences
-              .filter((p) => p && p.enabled)
-              .map((p) => String(p.channel).toLowerCase())
-          : undefined,
-      };
+      if (subPayload) {
+        const existing =
+          (await SubscriptionService.getSubscriptions({ userId, limit: 1 }))
+            ?.subscriptions?.[0] || null;
+        const updates = {
+          planId: subPayload.planId,
+          planName: subPayload.planName,
+          pricePerMonth: subPayload.pricePerMonth,
+          notificationTypes: Array.isArray(subPayload.notificationPreferences)
+            ? subPayload.notificationPreferences
+                .filter((p) => p && p.enabled)
+                .map((p) => String(p.channel).toLowerCase())
+            : undefined,
+        };
 
-      if (existing) {
-        await SubscriptionService.updateSubscription(existing.id, updates);
-      } else {
-        await SubscriptionService.createSubscription({
-          userId,
-          ...updates,
-          alertTypes: [],
+        if (existing) {
+          await SubscriptionService.updateSubscription(existing.id, updates);
+        } else {
+          await SubscriptionService.createSubscription({
+            userId,
+            ...updates,
+            alertTypes: [],
+          });
+        }
+      }
+
+      if (servicePayload) {
+        const unique = {};
+        for (const s of servicePayload) {
+          const key = s?.key || s?.type;
+          if (!key) continue;
+          unique[String(key).toLowerCase()] = !!s.enabled;
+        }
+
+        const enabledTypes = Object.entries(unique)
+          .filter(([, enabled]) => enabled)
+          .map(([k]) => k);
+
+        const [config] = await ServiceConfiguration.findOrCreate({
+          where: { userId },
+          defaults: {
+            userId,
+            alertTypes: enabledTypes,
+            notificationMethods: [],
+          },
         });
+
+        await config.update({ alertTypes: enabledTypes });
       }
     } catch (err) {
-      return res.status(500).json({ message: "Failed to update subscription" });
+      return res.status(500).json({ message: "Failed to update dashboard" });
     }
 
     return this.getDashboard(req, res);

@@ -67,12 +67,13 @@ export interface Alert {
 
 // ---- Intelligence services ----
 export type IntelligenceServiceKey =
-  | "OUTSIDE_NOISE"
-  | "INSIDE_NOISE"
-  | "PASSENGER_SOUND"
-  | "ANIMAL_SOUND"
-  | "ENGINE_ANOMALY"
-  | "COLLISION_SOUND";
+  | "COLLISION_SOUND"
+  | "ALERT_SOUNDS"
+  | "COLLISION_SOUNDS"
+  | "EMERGENCY_SIRENS"
+  | "ENVIRONMENTAL_SOUNDS"
+  | "ROAD_TRAFFIC"
+  | "HUMAN_SCREAM";
 
 export interface CarServiceConfig {
   carId: string;

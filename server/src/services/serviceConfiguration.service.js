@@ -134,14 +134,6 @@ class ServiceConfigurationService {
                     ? updates.alertTypes
                     : [updates.alertTypes];
 
-                // Verify alert types are present in the user's Subscription
-                const subscribedAlerts = new Set(subscription.alertTypes || []);
-                const isAllowed = alerts.every(t => subscribedAlerts.has(String(t)));
-
-                if (!isAllowed) {
-                    throw new BadRequestError("You cannot enable alert types that are not in your subscription");
-                }
-
                 config.alertTypes = alerts;
             }
 

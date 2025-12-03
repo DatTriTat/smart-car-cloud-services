@@ -13,10 +13,15 @@ import type { AlertSeverityFilter } from "../components/AlertsFilterBar";
 import { Separator } from "@/components/ui/separator";
 import type {
   Alert,
+  AlertTypeDef,
+  Car,
   CarServiceConfig,
   IntelligenceServiceKey,
 } from "@/domain/types";
 import { useOwnerDashboard } from "../hooks/useOwnerDashboard";
+import { capitalize } from "@/utils";
+import { saveOwnerDashboard } from "../api/ownerDashboardStorage";
+import { acknowledgeAlert } from "../api/ownerDashboardApi";
 
 export function OwnerDashboardPage() {
   const { user } = useAuth();
@@ -33,7 +38,12 @@ export function OwnerDashboardPage() {
 
   useEffect(() => {
     if (data?.carServiceConfigs) {
-      setServiceConfigs(data.carServiceConfigs);
+      const merged = buildConfigs(
+        data.cars,
+        data.carServiceConfigs,
+        data.alertTypes || []
+      );
+      setServiceConfigs(merged);
     }
     if (data?.alerts) {
       setAlertsState(data.alerts);
@@ -46,6 +56,10 @@ export function OwnerDashboardPage() {
   }
 
   function handleAcknowledge(alertId: string) {
+    void acknowledgeAlert(alertId, user?.id).catch((err) =>
+      console.warn("Failed to acknowledge alert", err)
+    );
+
     setAlertsState((prevAlerts) =>
       prevAlerts.map((a) =>
         a.id === alertId ? { ...a, status: "ACKNOWLEDGED" as const } : a
@@ -62,8 +76,8 @@ export function OwnerDashboardPage() {
     key: IntelligenceServiceKey,
     enabled: boolean
   ) {
-    setServiceConfigs((prev) =>
-      prev.map((cfg) =>
+    setServiceConfigs((prev) => {
+      const next = prev.map((cfg) =>
         cfg.carId !== carId
           ? cfg
           : {
@@ -72,8 +86,18 @@ export function OwnerDashboardPage() {
                 s.key === key ? { ...s, enabled } : s
               ),
             }
-      )
-    );
+      );
+
+      if (data) {
+        const payload = {
+          ...data,
+          carServiceConfigs: next,
+        };
+        void saveOwnerDashboard(payload);
+      }
+
+      return next;
+    });
   }
 
   if (isLoading) return <Loading />;
@@ -177,4 +201,30 @@ export function OwnerDashboardPage() {
       }}
     </OwnerLayout>
   );
+}
+
+function buildConfigs(
+  cars: Car[],
+  existing: CarServiceConfig[],
+  alertTypes: AlertTypeDef[]
+): CarServiceConfig[] {
+  const types = alertTypes
+    .map((t) => t.type)
+    .filter(Boolean) as string[];
+
+  return cars.map((car) => {
+    const found = existing.find((c) => c.carId === car.id);
+    if (found) return found;
+
+    return {
+      carId: car.id,
+      services: types.map((t) => ({
+        key: t.toUpperCase() as IntelligenceServiceKey,
+        label: capitalize(t),
+        description:
+          alertTypes.find((a) => a.type === t)?.description ?? "",
+        enabled: true,
+      })),
+    };
+  });
 }

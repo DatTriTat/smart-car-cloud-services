@@ -96,7 +96,7 @@ export function AlertsSection({
                         severity={
                           (severityByType.get(
                             alert.type || (alert as any).alertType
-                          ) as AlertSeverity) || alert.severity
+                          ) as AlertSeverity) || (alert.severity as AlertSeverity)
                         }
                       />
                     </TableCell>

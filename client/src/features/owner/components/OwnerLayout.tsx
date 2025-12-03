@@ -43,7 +43,7 @@ export function OwnerLayout({ children, cars, ownerName }: OwnerLayoutProps) {
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r p-4 flex flex-col">
+      <aside className="w-70 bg-white border-r p-4 flex flex-col">
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Smart Car Cloud</h2>
           <p className="text-sm text-slate-500">Signed in as {displayName}</p>

@@ -48,7 +48,11 @@ export function OwnerServiceConfigSection({
         ) : (
           <div className="space-y-4">
             {configForCar.services.map((service) => (
-              <Item variant="outline" className="bg-slate-50/60">
+              <Item
+                key={service.key}
+                variant="outline"
+                className="bg-slate-50/60"
+              >
                 <ItemContent>
                   <ItemTitle>{service.label}</ItemTitle>
                   <ItemDescription>{service.description}</ItemDescription>

@@ -16,7 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { Alert } from "@/domain/types";
+import type { Alert, AlertTypeDef } from "@/domain/types";
 import {
   getAlertTypeChartDatas,
   getAlertSeverityChartDatas,
@@ -25,6 +25,7 @@ import {
 
 interface AlertPieChartProps {
   alerts: Alert[];
+  alertTypes?: AlertTypeDef[];
 }
 
 export function AlertTypeBarChart({ alerts }: AlertPieChartProps) {
@@ -56,8 +57,11 @@ export function AlertTypeBarChart({ alerts }: AlertPieChartProps) {
   );
 }
 
-export function AlertLineChart({ alerts }: AlertPieChartProps) {
-  const { chartData, chartConfig } = getAlertSeverityChartDatas(alerts);
+export function AlertLineChart({ alerts, alertTypes }: AlertPieChartProps) {
+  const { chartData, chartConfig } = getAlertSeverityChartDatas(
+    alerts,
+    alertTypes ?? []
+  );
 
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">

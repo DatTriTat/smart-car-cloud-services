@@ -158,3 +158,21 @@ export async function fetchOwnerDashboard(
     return normalizeOwnerDashboard({});
   }
 }
+
+export async function acknowledgeAlert(
+  alertId: string,
+  userId?: string
+): Promise<void> {
+  const res = await authFetch(`/alerts/${alertId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status: "acknowledged",
+      userId,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.message || "Failed to acknowledge alert");
+  }
+}

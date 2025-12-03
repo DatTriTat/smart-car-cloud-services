@@ -1,7 +1,6 @@
 import Error from "@/components/shared/Error";
 import Loading from "@/components/shared/Loading";
 import type { AlertTypeDef } from "@/domain/types";
-import type { CloudDashboardData } from "@/features/cloud/api/cloudDashboardApi";
 import { useCloudDashboard } from "@/features/cloud/hooks/useCloudDashboard";
 import { CloudLayout } from "../components/CloudLayout";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
@@ -50,21 +49,8 @@ export function CloudAlertTypesPage() {
         type: input.type.toLowerCase(),
         defaultSeverity: input.defaultSeverity,
       }),
-    onSuccess: (created, variables) => {
-      const merged: AlertTypeDef = {
-        ...created,
-        name: variables.name || created.name,
-      };
-      queryClient.setQueryData<CloudDashboardData | undefined>(
-        ["cloudDashboard"],
-        (oldData) =>
-          oldData
-            ? {
-                ...oldData,
-                alertTypes: [...oldData.alertTypes, merged],
-              }
-            : oldData
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cloudDashboard"] });
     },
   });
 
@@ -78,42 +64,15 @@ export function CloudAlertTypesPage() {
         enabled: input.payload.enabled,
         name: input.payload.name,
       }),
-    onSuccess: (updated, variables) => {
-      queryClient.setQueryData<CloudDashboardData | undefined>(
-        ["cloudDashboard"],
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            alertTypes: oldData.alertTypes.map((t) => {
-              if ((t.type || t.key) !== variables.currentType) return t;
-              return {
-                ...t,
-                ...updated,
-                name: variables.payload.name || updated.name || t.name,
-              };
-            }),
-          };
-        }
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cloudDashboard"] });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteAlertType,
-    onSuccess: (deletedType) => {
-      queryClient.setQueryData<CloudDashboardData | undefined>(
-        ["cloudDashboard"],
-        (oldData) =>
-          oldData
-            ? {
-                ...oldData,
-                alertTypes: oldData.alertTypes.filter(
-                  (t) => (t.type || t.key) !== deletedType
-                ),
-              }
-            : oldData
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cloudDashboard"] });
     },
   });
 
