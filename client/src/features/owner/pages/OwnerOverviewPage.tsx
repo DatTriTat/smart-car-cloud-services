@@ -27,8 +27,6 @@ import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CarStatusBadge } from "@/components/status/CarStatusBadge";
 import { AlertLineChart, AlertTypeBarChart } from "@/components/shared/Chart";
-import { Alert } from "@/components/ui/alert";
-import { AlertPieChart } from "@/components/shared/Chart";
 import SimpleMap from "@/components/shared/Map";
 import { formatDate } from "@/utils";
 import { useAuth } from "@/auth/AuthContext";

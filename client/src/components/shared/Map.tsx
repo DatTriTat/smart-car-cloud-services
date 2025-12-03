@@ -17,12 +17,7 @@ export default function SimpleMap({
   const lat = Number(carLocation?.latitude);
   const lng = Number(carLocation?.longitude);
 
-  if (
-    !carLocation ||
-    !Number.isFinite(lat) ||
-    !Number.isFinite(lng)
-  ) {
-    console.warn("[Map] missing location", carLocation);
+  if (!carLocation || !Number.isFinite(lat) || !Number.isFinite(lng)) {
     return (
       <div className="h-80 w-full flex items-center justify-center text-slate-500 text-sm">
         No location data available.

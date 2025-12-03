@@ -2,7 +2,7 @@ import type { ChartConfig } from "@/components/ui/chart";
 import type { Alert } from "@/domain/types";
 
 export function capitalize(alertType: string | undefined | null) {
-  if (!alertType) return "Unknown";
+  if (!alertType) return "";
   const safe = String(alertType);
   const words = safe.toLowerCase().split("_");
   const result = [];
@@ -10,7 +10,7 @@ export function capitalize(alertType: string | undefined | null) {
     if (!word) continue;
     result.push(word[0].toUpperCase() + word.slice(1));
   }
-  return result.join(" ") || "Unknown";
+  return result.join(" ");
 }
 
 export function formatDate(iso: string) {
@@ -25,10 +25,43 @@ export function formatDate(iso: string) {
 }
 
 export function getAlertTypeChartDatas(alerts: Alert[]) {
-  const alertTypes = new Set(alerts.map((alert) => alert.type));
+  const normalized = alerts
+    .map((alert) => alert.alertType)
+    .filter(Boolean) as string[];
+
+  const alertTypes = new Set(normalized);
+
+  if (alertTypes.size === 0) {
+    return { chartData: [], chartConfig: {} satisfies ChartConfig };
+  }
+
+  const chartData = [...alertTypes].map((alertType) => ({
+    type: alertType,
+    quantity: normalized.filter((t) => t === alertType).length,
+    fill: `var(--color-${alertType})`,
+  }));
+
+  const chartConfig = Object.fromEntries(
+    [...alertTypes].map((alertType, idx) => [
+      alertType,
+      {
+        label: capitalize(alertType),
+        color: `var(--chart-${idx + 1})`,
+      },
+    ])
+  ) satisfies ChartConfig;
+
+  return {
+    chartData,
+    chartConfig,
+  };
+}
+
 export function getChartDatas(alerts: Alert[]) {
-  // normalize type, fallback to alert.alertType or "unknown"
-  const normalized = alerts.map((alert) => alert.type || (alert as any).alertType || "unknown");
+  const normalized = alerts
+    .map((alert) => alert.alertType)
+    .filter(Boolean) as string[];
+
   const alertTypes = new Set(normalized);
 
   const chartData = [...alertTypes].map((alertType) => {
