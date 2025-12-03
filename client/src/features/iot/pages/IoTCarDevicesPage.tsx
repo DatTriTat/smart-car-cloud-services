@@ -30,10 +30,12 @@ import {
   deleteDevice,
 } from "../api/iotDashboardMutations";
 import type { IotDashboardData } from "../api/iotDashboardApi";
+import { useLocation } from "react-router";
 
 export function IoTCarDevicesPage() {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useIotDashboard();
+  const location = useLocation();
 
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -47,10 +49,16 @@ export function IoTCarDevicesPage() {
   const [showCarList, setShowCarList] = useState(false);
 
   useEffect(() => {
-    if (!selectedCarId && data && data.cars.length > 0) {
+    if (selectedCarId) return;
+    if (!data || data.cars.length === 0) return;
+
+    const preferred = (location.state as { carId?: string } | null)?.carId;
+    if (preferred && data.cars.some((c) => c.id === preferred)) {
+      setSelectedCarId(preferred);
+    } else {
       setSelectedCarId(data.cars[0].id);
     }
-  }, [data, selectedCarId]);
+  }, [data, selectedCarId, location.state]);
 
   async function handleAddDevice(deviceWithoutId: Omit<IoTDevice, "id">) {
     try {
